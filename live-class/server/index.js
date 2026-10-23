@@ -1,0 +1,6 @@
+import {openDb} from './db.js';import {provider} from './provider.js';import {createApp,reconcile} from './app.js';import express from 'express';import {fileURLToPath} from 'node:url';
+const origin=process.env.APP_ORIGIN;if(!origin)throw Error('APP_ORIGIN required');const production=process.env.NODE_ENV==='production';if(production&&!origin.startsWith('https://'))throw Error('HTTPS origin required');
+const db=openDb(process.env.DB_PATH||'./data/live.sqlite'),video=provider(process.env);const trustProxyHops=Number(process.env.TRUST_PROXY_HOPS||0);if(!Number.isInteger(trustProxyHops)||trustProxyHops<0||trustProxyHops>5)throw Error('TRUST_PROXY_HOPS must be 0–5');const app=createApp({db,video,origin,production,trustProxyHops});app.use('/live',express.static(fileURLToPath(new URL('../../live',import.meta.url))));
+const server=app.listen(Number(process.env.PORT||4100),'127.0.0.1',()=>console.log('Live class API started. Video configured:',video.enabled));
+let running=false;const interval=setInterval(async()=>{if(running)return;running=true;try{await reconcile(db,video);}catch{console.error('Media reconciliation failed; check provider connectivity');}finally{running=false;}},10000);
+process.on('SIGTERM',()=>{clearInterval(interval);server.close(()=>{db.close();process.exit(0);});});

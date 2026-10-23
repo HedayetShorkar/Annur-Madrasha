@@ -1,0 +1,13 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const code=fs.readFileSync(path.join(__dirname,'../assets/js/app.js'),'utf8');
+const block=code.slice(code.indexOf('function syncHifz(){'),code.indexOf("document.querySelector('input[name=lv][value=Hifz]').setAttribute('aria-controls'"));
+let selected=null;
+const field={value:'৩ পারা',disabled:true,required:false,classList:{remove(){}},removeAttribute(){}},panel={hidden:true},radio={setAttribute(k,v){this[k]=v;}};
+const ctx={$:id=>id==='#hifz-details'?panel:field,document:{querySelector:s=>s.includes(':checked')?selected:radio}};
+vm.createContext(ctx);vm.runInContext(block,ctx);
+ctx.syncHifz();assert.equal(panel.hidden,true);assert.equal(field.required,false);
+selected={value:'Hifz'};ctx.syncHifz();assert.equal(panel.hidden,false);assert.equal(field.disabled,false);assert.equal(field.required,true);assert.equal(radio['aria-expanded'],'true');
+selected={value:'Reads with Tajweed'};ctx.syncHifz();assert.equal(panel.hidden,true);assert.equal(field.disabled,true);assert.equal(field.required,false);
+selected={value:'Hifz'};ctx.syncHifz();assert.equal(field.value,'৩ পারা');
+assert.ok(code.includes("bad($('#hifz-progress'),!$('#hifz-progress').disabled&&!v('hifz-progress'))"));
+console.log('PASS: Hifz conditional display, required/disabled states, expansion state, retained draft and conditional validation wiring.');

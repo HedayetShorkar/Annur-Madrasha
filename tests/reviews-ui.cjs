@@ -1,0 +1,23 @@
+// Parent-feedback interactions, privacy and honest readiness checks; needs jsdom.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8'),dom=new JSDOM(html,{url:'https://school.test/',runScripts:'outside-only'}),w=dom.window,d=w.document;
+let copied='',requests=0;w.matchMedia=()=>({matches:true});w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async value=>{copied=value;}}});w.fetch=()=>{requests++;throw Error('No review endpoint configured');};
+w.eval(fs.readFileSync(path.join(root,'assets/js/reviews.js'),'utf8'));
+const get=id=>d.getElementById(id),input=(id,value)=>{get(id).value=value;get(id).dispatchEvent(new w.Event('input',{bubbles:true}));},tick=()=>new Promise(r=>setTimeout(r,0));
+(async()=>{
+ assert.match(get('rvt').textContent,/এখনো কোনো মতামত প্রকাশিত হয়নি/);assert.equal(get('rvt').querySelector('[itemprop=ratingValue]'),null);assert.equal(get('rv-sb').disabled,true);assert.equal(get('rvd').hasAttribute('aria-labelledby'),true);assert.equal(d.querySelector('[name=rv-st]:checked'),null);
+ get('rvo').click();assert.equal(get('rvd').open,true);assert.equal(d.activeElement,get('rv-name'));
+ get('review-preview-button').click();assert.equal(get('rv-name').getAttribute('aria-invalid'),'true');assert.equal(get('rv-name-error').hidden,false);assert.equal(get('review-draft-preview').hidden,true);
+ const name='<img src=x onerror=alert(1)>',review='<script>alert(1)</script> Teaching has been thoughtful.';
+ input('rv-name',name);input('rv-ct','Bangladesh');input('rv-tx',review);assert.match(get('review-character-count').querySelector('.en').textContent,new RegExp('^'+review.length+' / 600$'));
+ get('review-preview-button').click();assert.equal(get('review-draft-preview').hidden,false);assert.equal(get('review-draft-name').textContent,name);assert.equal(get('review-draft-text').textContent,review);assert.equal(get('review-draft-preview').querySelector('img,script'),null);assert.equal(get('review-draft-stars').hidden,true);
+ get('rs4').checked=true;get('rs4').dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(d.querySelectorAll('.review-rating label.is-filled').length,4);assert.match(get('review-rating-label').querySelector('.en').textContent,/4 \/ 5/);assert.equal(get('review-draft-stars').hidden,false);get('review-clear-rating').click();assert.equal(d.querySelector('[name=rv-st]:checked'),null);assert.equal(get('review-draft-stars').hidden,true);
+ get('review-copy').click();await tick();assert.ok(copied.includes(review));assert.ok(copied.includes(name));assert.match(get('review-copy-status').querySelector('.en').textContent,/not been submitted or published/);
+ get('rvf').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(get('rv-consent-error').hidden,false);assert.equal(d.activeElement,get('rv-c'));assert.equal(get('review-submit-status').hidden,true);
+ get('rv-c').checked=true;get('rv-c').dispatchEvent(new w.Event('change',{bubbles:true}));get('rvf').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(get('review-submit-status').hidden,false);assert.match(get('review-submit-status').textContent,/জমা হয়নি/);assert.equal(get('rvf').hidden,false);
+ get('rvd').querySelector('.dx2').click();assert.equal(get('rvd').open,false);assert.equal(d.activeElement,get('rvo'));get('rvo').click();assert.equal(get('rv-name').value,name);assert.equal(get('rv-tx').value,review);
+ d.documentElement.lang='en';input('rv-tx','Updated learning experience');assert.match(get('review-character-count').querySelector('.en').textContent,/27 \/ 600/);assert.equal(get('review-draft-text').textContent,'Updated learning experience');assert.equal(get('review-submit-status').hidden,true);
+ get('review-edit').click();assert.equal(get('review-draft-preview').hidden,true);assert.equal(d.activeElement,get('rv-tx'));input('rv-tx','x'.repeat(601));get('review-preview-button').click();assert.equal(get('rv-text-error').hidden,false);
+ assert.equal(requests,0);assert.equal(w.localStorage.length,0);assert.equal(w.sessionStorage.length,0);
+ console.log('PASS: premium feedback dialog, safe preview, optional rating/clear, bilingual count, copy, consent and length validation, retained drafts, no invented reviews or fake submissions, no network/storage writes.');w.close();
+})().catch(e=>{console.error(e);process.exitCode=1;w.close();});

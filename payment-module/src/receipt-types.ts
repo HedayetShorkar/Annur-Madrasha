@@ -1,0 +1,12 @@
+import {dhakaToday,type Amounts} from '../../shared/receipt-core.mjs';
+export type Lang='bn'|'en';
+export type Draft={studentId:string;studentName:string;studentCode:string;guardianName:string;phone:string;feeType:string;packageId:string;billingMonth:string;enrollmentDate:string;amountMode:string;customAmount:string;customReason:string;description:string;discount:string;receivedAmount:string;method:string;transactionId:string;paidDate:string;note:string;evidenceReference:string};
+export type User={id:string;name:string;role:string;loginId?:string;active?:boolean};
+export type Issued=Draft&Amounts&{id:string;receiptNumber:string;issuedAt:string;issuerName:string;status:'ISSUED'|'VOID';paymentStatus:'CONFIRMED_PAID';source:'ADMIN_MANUAL';voidReason?:string};
+export type Page={items:Issued[];total:number;offset:number};
+export const feeLabels:Record<string,[string,string]>={MONTHLY:['মাসিক বেতন','Monthly tuition'],FIRST_MONTH:['প্রথম মাসের বেতন','First-month tuition'],ADMISSION:['ভর্তি ফি','Admission fee'],OTHER:['অন্যান্য ফি','Other fee']};
+export const methodLabels:Record<string,[string,string]>={CASH:['নগদ অর্থ','Cash'],BKASH:['বিকাশ','bKash'],NAGAD:['নগদ','Nagad'],ROCKET:['রকেট','Rocket'],BANK:['ব্যাংক','Bank']};
+export const packageLabels:Record<string,string>={basic:'Basic',standard:'Standard',premium:'Premium'};
+export const initial=():Draft=>({studentId:'',studentName:'',studentCode:'',guardianName:'',phone:'',feeType:'MONTHLY',packageId:'basic',billingMonth:dhakaToday().slice(0,7),enrollmentDate:dhakaToday(),amountMode:'PACKAGE',customAmount:'999',customReason:'',description:'',discount:'0',receivedAmount:'999',method:'CASH',transactionId:'',paidDate:dhakaToday(),note:'',evidenceReference:''});
+export const money=(n:number,lang:Lang)=>new Intl.NumberFormat(lang==='bn'?'bn-BD':'en-BD',{style:'currency',currency:'BDT',minimumFractionDigits:2}).format(n/100);
+export const calendar=(s:string,lang:Lang,month=false)=>s?new Date(s+(month?'-01':'')+'T12:00:00Z').toLocaleDateString(lang==='bn'?'bn-BD':'en-GB',month?{month:'long',year:'numeric',timeZone:'Asia/Dhaka'}:{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Dhaka'}):'—';

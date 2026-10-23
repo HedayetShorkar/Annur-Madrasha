@@ -1,0 +1,32 @@
+/* Larger, labelled date/time controls. Billing rules and canonical values are retained. */
+#fm .fee-date-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:17px}
+#fm .fee-date-shortcuts button{border:1px solid var(--bd);border-radius:10px;padding:12px 7px;min-height:69px;background:var(--card);color:var(--tx);font:inherit;font-size:12px;cursor:pointer;line-height:1.5}
+#fm .fee-date-shortcuts small{display:block;font-size:10px;color:var(--mu);margin-top:5px}
+#fm .fee-date-shortcuts button[aria-pressed=true]{background:#e4f5eb;color:#064e3b;border-color:#238259;box-shadow:inset 0 0 0 1px #238259}
+#fm .fee-date-shortcuts button[aria-pressed=true] small{color:#29654c}
+#fm .fee-date-shortcuts button:hover{border-color:#238259}
+#fm #fee-start{font-size:16px;min-height:56px;font-weight:600;padding:13px 12px;cursor:pointer}
+#fee-date-hint{margin-top:8px}
+.fee-selected-date{display:flex;gap:12px;align-items:center;margin:17px 0 0;padding:15px 16px;border:1px solid var(--bd);background:var(--card);border-radius:11px}
+.fee-selected-date>span{display:grid;place-items:center;width:34px;height:37px;border-radius:8px;border:1px solid #d8c393;background:#faf4e7;color:#7a6738;font-size:22px;flex-shrink:0}
+.fee-selected-date small{display:block;font-size:10px;color:var(--mu);line-height:1.6}.fee-selected-date strong{display:block;font-size:15px;font-weight:600;margin-top:4px;color:var(--tx);line-height:1.6}
+.fee-calculation-details{padding-top:12px;margin-top:17px;border-top:1px solid var(--bd)}.fee-calculation-details summary{font-size:12px;color:var(--mu);cursor:pointer;min-height:38px;line-height:1.6;padding-block:8px}.fee-calculation-details[open] summary{margin-bottom:9px}
+#fm #schedule-format{max-width:260px;min-height:48px;padding:10px 12px;cursor:pointer}
+#fm .schedule-time-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px;align-items:start}
+.schedule-time-card{min-width:0;border:1px solid var(--bd);border-radius:13px;background:var(--card);padding:16px 13px 13px}
+.schedule-time-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:13px}
+.schedule-time-card-heading>strong{font-size:13px;font-weight:600;color:var(--tx)}.schedule-time-card-heading>span{font-size:11px;font-weight:600;color:#126545;text-align:right;line-height:1.8}
+#fm .schedule-clock{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.05fr);gap:7px}
+#fm .schedule-clock[data-format="24"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+#fm .schedule-clock-field{min-width:0}#fm .schedule-clock-field label{font-size:10px!important;font-weight:600;margin:0 0 6px!important;color:var(--mu);line-height:1.6}
+#fm .schedule-clock-field select{width:100%!important;min-width:0!important;min-height:48px!important;padding:10px 5px!important;font-size:16px!important;font-weight:600;cursor:pointer;line-height:1.5;border-radius:8px}
+.schedule-time-adjust{display:flex;gap:7px;margin-top:12px}.schedule-time-adjust button{flex:1;min-height:40px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font:inherit;font-size:11px;padding:8px 5px;cursor:pointer;line-height:1.5}
+.schedule-time-adjust button:hover:not(:disabled){border-color:#238259;background:#eff8f1}.schedule-time-adjust button:disabled{opacity:.45;cursor:not-allowed}
+.schedule-period-help{margin-top:13px;border-left:2px solid #c3ad6c;padding:8px 0 8px 11px;font-size:10px;line-height:1.9}
+html[data-theme=dark] #fm .fee-date-shortcuts button[aria-pressed=true]{background:#173d2a;color:#e0f9e5;border-color:#76b98d;box-shadow:inset 0 0 0 1px #76b98d}
+html[data-theme=dark] #fm .fee-date-shortcuts button[aria-pressed=true] small{color:#bcdcc5}
+html[data-theme=dark] .fee-selected-date>span{background:#3c3521;border-color:#8e7d4d;color:#f2d68b}html[data-theme=dark] .schedule-time-card-heading>span{color:#a1e1bb}
+html[data-theme=dark] .schedule-time-adjust button:hover:not(:disabled){background:#183e2b}
+@media(min-width:1001px) and (max-width:1150px){#fm .schedule-time-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px){#fm .schedule-time-grid{grid-template-columns:minmax(0,1fr);gap:14px}.schedule-time-card{padding:17px 15px 14px}.schedule-time-card-heading>span{font-size:13px}#fm .schedule-clock-field label{font-size:11px!important}#fm .schedule-clock-field select{min-height:52px!important;padding:11px 9px!important}.schedule-time-adjust button{font-size:12px;min-height:43px}#fm .fee-date-shortcuts{gap:6px}#fm .fee-date-shortcuts button{padding:12px 5px;font-size:11px}#fm .fee-date-shortcuts small{font-size:9px}.fee-selected-date{padding:13px 12px}.fee-selected-date strong{font-size:14px}#fm #schedule-format{max-width:none}}
+@media(max-width:380px){#fm .fee-date-shortcuts{grid-template-columns:minmax(0,1fr)}#fm .fee-date-shortcuts button{display:flex;align-items:center;justify-content:space-between;min-height:47px;padding:10px 12px;text-align:left}#fm .fee-date-shortcuts small{margin-top:0}}

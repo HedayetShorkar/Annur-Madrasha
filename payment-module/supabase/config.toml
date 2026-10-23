@@ -1,0 +1,9 @@
+project_id = "annoor-payments"
+[functions.payments]
+import_map = "./functions/deno.json"
+verify_jwt = false
+# payments validates the bearer token with Auth.getUser on EVERY request.
+[functions.sms-webhook]
+import_map = "./functions/deno.json"
+verify_jwt = false
+# sms-webhook verifies HMAC + timestamp + database nonce + event dedupe.

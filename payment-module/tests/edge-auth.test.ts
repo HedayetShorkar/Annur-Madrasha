@@ -1,0 +1,9 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {paymentsHandler} from '../supabase/functions/_shared/payments-handler.ts';
+import type {SupabaseClient} from '@supabase/supabase-js';
+function fake(user:unknown){let rpcCalls=0;return {client:{auth:{getUser:async()=>({data:{user},error:user?null:{message:'invalid'}})},rpc:async()=>{rpcCalls++;return {data:true,error:null};}} as unknown as SupabaseClient,calls:()=>rpcCalls};}
+const request=(body:unknown,headers:Record<string,string>={})=>new Request('https://local.invalid/payments',{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify(body)});
+test('missing and invalid tokens never reach finance RPC',async()=>{const f=fake(null);const h=paymentsHandler(f.client,['https://school.test']);assert.equal((await h(request({action:'overview'}))).status,401);assert.equal((await h(request({action:'overview'},{authorization:'Bearer fake'}))).status,401);assert.equal(f.calls(),0);});
+test('unverified email cannot submit payments',async()=>{const f=fake({id:'user',email_confirmed_at:null});assert.equal((await paymentsHandler(f.client,[])(request({action:'submit'},{authorization:'Bearer test'}))).status,401);});
+test('disallowed origins rejected before authentication',async()=>{const f=fake(null);assert.equal((await paymentsHandler(f.client,['https://school.test'])(request({action:'overview'},{origin:'https://attacker.test'}))).status,403);});
+test('client-supplied amount/actor/status fields are rejected',async()=>{const f=fake({id:'user',email_confirmed_at:'2026-01-01'});const h=paymentsHandler(f.client,[]);const r=await h(request({action:'submit',invoice_number:'AN-2026-0000000001',sender_number:'01800000000',transaction_id:'TEST0001',amount_minor:1,status:'CONFIRMED_PAID',actor:'admin'},{authorization:'Bearer valid'}));assert.equal(r.status,400);assert.equal(f.calls(),1);});

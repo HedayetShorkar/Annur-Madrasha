@@ -1,0 +1,42 @@
+// Compiled React UI checks. Run with NODE_PATH pointing to jsdom's node_modules.
+const {JSDOM,VirtualConsole}=require('jsdom'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const root=path.resolve(__dirname,'..'),htmlFile=path.join(root,'payments/index.html'),html=fs.readFileSync(htmlFile,'utf8'),entry=html.match(/<script defer src="([^"]+)"/)[1],script=fs.readFileSync(path.resolve(root,'payments',entry),'utf8');
+const wait=()=>new Promise(r=>setTimeout(r,100));
+const doc={id:'receipt-1',receiptNumber:'AN-R-2026-000001',issuedAt:'2026-10-19T10:00:00Z',issuerName:'Office admin',status:'ISSUED',paymentStatus:'CONFIRMED_PAID',source:'ADMIN_MANUAL',studentId:'',studentName:'Test student',studentCode:'ST-01',guardianName:'Parent',phone:'01712345678',feeType:'MONTHLY',packageId:'basic',billingMonth:'2026-10',enrollmentDate:'',amountMode:'PACKAGE',customReason:'',description:'',note:'',method:'CASH',transactionId:'',paidDate:'2026-10-19',evidenceReference:'Cashbook page 7',baseMinor:99900,discountMinor:0,netMinor:99900,receivedMinor:99900,balanceMinor:0,daysBilled:null,daysInMonth:null};
+async function render(role=null,local=false,loseResponse=false){
+ const errors=[],calls=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(e.type!=='css-parsing')errors.push(e.message);});let prints=0,first=true;
+ const dom=new JSDOM(html,{url:local?pathToFileURL(htmlFile).href:'https://school.test/nested/payments/index.html',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
+  w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};
+  w.print=()=>{prints++;assert.match(w.document.getElementById('receipt-print-root').textContent,/AN-R-2026-000001/);assert.doesNotMatch(w.document.getElementById('receipt-print-root').textContent,/Cashbook page 7/);w.dispatchEvent(new w.Event('afterprint'));};
+  w.fetch=async(url,options={})=>{calls.push({url,options});if(local)throw Error('No API from disk preview');let data={},ok=true,status=200;
+   if(url==='/api/live/me'){if(role)data={user:{id:role,name:role,role}};else{ok=false;status=401;data={error:'LOGIN_REQUIRED'};}}
+   else if(url==='/api/live/users')data=[];
+   else if(url==='/api/live/receipts'&&options.method==='POST'){if(loseResponse&&first){first=false;throw Error('response lost');}data=doc;}
+   else if(url==='/api/live/receipts/receipt-1/print')data=doc;
+   else if(url==='/api/live/receipts/receipt-1/void')data={...doc,status:'VOID',voidReason:'Incorrect name on receipt'};
+   else if(url.startsWith('/api/live/receipts?'))data={items:[doc],total:1,offset:0};
+   return{ok,status,headers:{get:()=> 'application/json'},json:async()=>data};
+  };
+ }});dom.window.eval(script);await wait();return{dom,errors,calls,prints:()=>prints};
+}
+function set(dom,name,value){const el=dom.window.document.querySelector(`[name="${name}"]`);assert.ok(el,name);if(el.tagName==='SELECT'){el.value=value;el.dispatchEvent(new dom.window.Event('change',{bubbles:true}));}else{Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(el,value);el.dispatchEvent(new dom.window.Event('input',{bubbles:true}));}return el;}
+const button=(d,text)=>[...d.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
+(async()=>{
+ const main=fs.readFileSync(path.join(root,'index.html'),'utf8');assert.match(main,/href="payments\/index.html"/);assert.doesNotMatch(main,/href="payments\/"/);assert.ok(!html.includes('type="module"'));assert.ok(fs.existsSync(new URL(entry,pathToFileURL(htmlFile))));
+ const offline=await render(null,true),d=offline.dom.window.document;
+ assert.match(d.querySelector('h1').textContent,/ফি ও রসিদ/);assert.match(d.querySelector('.paper-brand').textContent,/আননূর/);assert.equal(offline.calls.length,0);assert.equal(button(d,'প্রিন্ট / PDF').disabled,true);assert.equal(d.querySelector('[name=verified]'),null);
+ set(offline.dom,'studentName','<img src=x onerror=alert(1)>');await wait();assert.match(d.querySelector('.paper-details').textContent,/<img src=x/);assert.equal(d.querySelector('.paper-details img'),null);
+ set(offline.dom,'packageId','premium');await wait();assert.equal(d.querySelector('[name=receivedAmount]').value,'2999.00');assert.match(d.querySelector('.paper-table').textContent,/Premium/);
+ set(offline.dom,'feeType','FIRST_MONTH');await wait();set(offline.dom,'enrollmentDate','2026-10-08');await wait();assert.equal(d.querySelector('[name=receivedAmount]').value,(Math.round(299900*24/31)/100).toFixed(2));
+ button(d,'EN').click();await wait();assert.equal(d.documentElement.lang,'en');assert.match(d.querySelector('.receipt-paper').textContent,/First-month tuition/);button(d,'Online paymentComing soon').click();await wait();assert.match(d.body.textContent,/bKash/);assert.match(d.body.textContent,/Not active yet/);assert.equal(offline.calls.length,0);
+ assert.deepEqual(offline.errors,[]);offline.dom.window.close();
+ for(const role of ['student','teacher']){const r=await render(role),p=r.dom.window.document;assert.equal(p.querySelector('[name=verified]'),null);assert.equal(button(p,'প্রিন্ট / PDF').disabled,true);assert.equal(r.calls.filter(c=>c.url==='/api/live/users').length,0);assert.equal(r.calls.filter(c=>/\/receipts/.test(c.url)).length,0);assert.deepEqual(r.errors,[]);r.dom.window.close();}
+ const r=await render('admin',false,true),a=r.dom.window.document;
+ set(r.dom,'studentName','Test student');set(r.dom,'evidenceReference','Cashbook page 7');await wait();a.querySelector('[name=verified]').click();await wait();a.querySelector('.receipt-editor').dispatchEvent(new r.dom.window.Event('submit',{bubbles:true,cancelable:true}));await wait();
+ assert.equal(r.calls.filter(c=>c.url==='/api/live/receipts').length,1);assert.equal(a.querySelector('fieldset').disabled,true);assert.equal(button(a,'নতুন খসড়া').disabled,true);button(a,'একই অনুরোধের ফল যাচাই করুন').click();await wait();
+ const attempts=r.calls.filter(c=>c.url==='/api/live/receipts');assert.equal(attempts.length,2);assert.equal(attempts[0].options.body,attempts[1].options.body);assert.equal(button(a,'প্রিন্ট / PDF').disabled,false);assert.match(a.querySelector('.receipt-paper').textContent,/AN-R-2026-000001/);assert.equal(a.querySelector('.draft-watermark'),null);assert.equal(r.prints(),0);
+ button(a,'প্রিন্ট / PDF').click();await wait();assert.equal(r.prints(),1);assert.equal(r.calls.filter(c=>c.url==='/api/live/receipts/receipt-1/print').length,1);
+ set(r.dom,'voidReason','Incorrect name on receipt');await wait();button(a,'রসিদ বাতিল করুন').click();await wait();assert.equal(button(a,'প্রিন্ট / PDF').disabled,true);assert.match(a.querySelector('.draft-watermark').textContent,/বাতিল/);assert.equal(r.dom.window.localStorage.length,2);assert.deepEqual(r.errors,[]);r.dom.window.close();
+ console.log('PASS: portable receipt page, editable live preview, package/proration, translations, no public issuing/printing, admin issue, lost-response retry, fresh-server print and void controls.');
+})().catch(e=>{console.error(e.stack||e);process.exitCode=1;});

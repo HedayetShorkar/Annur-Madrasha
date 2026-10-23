@@ -1,0 +1,11 @@
+export const PACKAGES: Readonly<Record<string,number>>;
+export const METHODS: readonly string[];
+export const FEE_TYPES: readonly string[];
+export function latinDigits(value:unknown):string;
+export function moneyMinor(value:unknown):number;
+export function validDate(value:unknown):boolean;
+export function dhakaToday(now?:Date):string;
+export type Amounts={baseMinor:number;discountMinor:number;netMinor:number;receivedMinor:number;balanceMinor:number;daysBilled:number|null;daysInMonth:number|null};
+export function calculateAmounts(input:Record<string,unknown>):Amounts;
+export function normalizeReceipt(input:Record<string,unknown>,today?:string):Record<string,unknown>&Amounts;
+export function amountWords(minor:number,lang?:string):string;

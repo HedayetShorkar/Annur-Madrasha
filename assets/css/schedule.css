@@ -1,0 +1,40 @@
+/* Scoped admission schedule planner. Native controls remain keyboard accessible. */
+#fm .schedule-planner{min-width:0;margin:32px 0 24px;padding:24px;border:1px solid var(--bd);border-radius:20px;background:linear-gradient(135deg,rgba(5,150,105,.06),transparent 65%)}
+#fm .schedule-planner>legend{padding:0 10px;font-size:21px;font-weight:800;color:var(--tx)}
+.schedule-intro{margin:0 0 20px;color:var(--mu);font-size:14px;line-height:1.7}
+.schedule-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#fm .schedule-modes label,#fm .schedule-day-grid label{position:relative;margin:0;cursor:pointer}
+#fm .schedule-modes input,#fm .schedule-day-grid input{position:absolute;width:1px;height:1px;opacity:0;margin:0}
+.schedule-modes span,.schedule-day-grid span{display:flex;justify-content:center;align-items:center;text-align:center;min-height:48px;padding:10px 8px;background:var(--card);border:1px solid var(--bd);border-radius:12px;font-size:13px;color:var(--tx);transition:background .15s,border-color .15s}
+.schedule-modes input:checked+span,.schedule-day-grid input:checked+span{background:#065f46;border-color:#065f46;color:#fff;box-shadow:0 3px 10px #064e3b20}
+.schedule-modes input:focus-visible+span,.schedule-day-grid input:focus-visible+span{outline:3px solid #10b981;outline-offset:3px}
+#schedule-details{margin-top:24px}
+#fm .schedule-planner select,#fm .schedule-planner input[type=time]{width:100%;min-width:0;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:12px;font:inherit;min-height:48px}
+.schedule-detect{border:0;background:transparent;color:#047857;font:inherit;font-size:12px;padding:10px 0;text-align:start;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+#fm .schedule-days,#fm .schedule-times{min-width:0;padding:0;border:0;margin:20px 0}
+.schedule-days legend,.schedule-times legend{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--tx)}
+.schedule-day-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.schedule-day-grid span{font-size:12px;padding:8px 2px}
+.schedule-hint{font-size:12px;line-height:1.8;color:var(--mu);margin:0 0 12px}
+.schedule-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.schedule-presets button{font:inherit;font-size:13px;border:1px solid var(--bd);border-radius:12px;padding:12px 6px;background:var(--card);color:var(--tx);cursor:pointer}
+.schedule-presets button small{display:block;font-size:11px;opacity:.8;margin-top:4px;font-variant-numeric:tabular-nums}
+.schedule-presets button[aria-pressed=true]{border-color:#059669;background:#d1fae5;color:#064e3b}
+.schedule-presets button:hover{border-color:#059669}
+.schedule-time-grid{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr);gap:10px;align-items:end}
+.schedule-time-grid>span{padding-bottom:13px;text-align:center;color:var(--mu)}
+.schedule-summary{display:flex;gap:12px;align-items:flex-start;padding:18px;margin:22px 0 14px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px;color:#064e3b}
+.schedule-summary-icon{font-size:28px;line-height:1}
+.schedule-summary strong{font-size:13px}.schedule-summary p{margin:6px 0 0;font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+.schedule-error{font-size:13px;color:#b91c1c;margin:16px 0}
+[data-theme=dark] .schedule-summary{background:#082f25;border-color:#27634e;color:#d1fae5}
+[data-theme=dark] .schedule-detect{color:#6ee7b7}
+[data-theme=dark] .schedule-error{color:#fca5a5}
+[data-theme=dark] #fm .schedule-planner input[type=time]{color-scheme:dark}
+.schedule-planner [hidden]{display:none!important}
+@media(max-width:600px){#fm .schedule-planner{padding:16px 12px}.schedule-day-grid{grid-template-columns:repeat(4,minmax(0,1fr))}#fm .schedule-planner>legend{font-size:18px}.schedule-modes{gap:6px}.schedule-modes span{font-size:12px}.schedule-summary{padding:14px}}
+@media(prefers-reduced-motion:reduce){.schedule-modes span,.schedule-day-grid span{transition:none}}
+.schedule-clock{display:flex;gap:4px;flex-wrap:wrap}.schedule-clock select{flex:1 1 60px!important;width:auto!important;padding:10px 5px!important;font-size:13px!important}.schedule-presets{margin-top:14px}#fm #gr{width:100%;min-height:48px;padding:12px;border-radius:12px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font:inherit}#fm #gr.bad{border-color:#ef4444}#schedule-class-days{font-weight:700;color:var(--tx)}
+.admission-notice{max-width:1176px;margin:24px auto;padding:22px 26px;border:2px solid #b7791f;border-left-width:6px;border-radius:16px;background:#fffbeb;color:#713f12}.admission-notice strong{font-size:21px}.admission-notice p{font-size:15px;line-height:1.9;margin:8px 0 12px}.admission-notice button{padding:10px 16px;background:#713f12;color:white;border:0;border-radius:10px;cursor:pointer;font:inherit;font-weight:700}[data-theme=dark] .admission-notice{background:#302313;color:#fef3c7;border-color:#d4af37}[data-theme=dark] .admission-notice button{background:#fcd34d;color:#302313}#fee-error{color:#b91c1c}[data-theme=dark] #fee-error{color:#fca5a5}#admission-rules{scroll-margin-top:110px}@media(max-width:1240px){.admission-notice{margin-inline:24px}}@media(max-width:600px){.admission-notice{margin-inline:16px;padding:18px}.admission-notice strong{font-size:18px}}
+.student-identity{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}#fm #student-gender{width:100%;min-height:48px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);padding:12px;font:inherit}#fm #student-gender.bad{border-color:#ef4444}@media(max-width:600px){.student-identity{grid-template-columns:1fr;gap:0}}
+.hifz-details{margin-top:16px;padding:16px 18px;border:1px solid var(--bd);border-left:4px solid #059669;border-radius:14px;background:var(--mint)}.hifz-details[hidden]{display:none!important}#fm .hifz-details label{margin-top:0}.hifz-details .hn{margin:8px 0 12px}

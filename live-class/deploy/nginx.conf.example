@@ -1,0 +1,17 @@
+# Inside an HTTPS server block with the real domain and TLS certificate configured.
+root /srv/annoor/public;
+index index.html;
+location /api/live/ {
+    proxy_pass http://127.0.0.1:4100;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 40s;
+    client_max_body_size 32k;
+}
+location = /live { return 308 /live/; }
+location /live/ { try_files $uri $uri/ /live/index.html; }
+location / { try_files $uri $uri/ =404; }
+# Only stage the public release; never serve the full project tree.
+location ~ /\. { deny all; }
