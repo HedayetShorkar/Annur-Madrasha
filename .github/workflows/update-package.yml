@@ -1,0 +1,37 @@
+name: Update complete website package
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - AnNoor_Payments.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: annoor-package-main
+  cancel-in-progress: true
+
+jobs:
+  package:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0 # v6.0.3
+        with:
+          ref: main
+      - name: Import or build the complete ZIP
+        run: python3 scripts/package-release.py
+      - name: Commit the verified package
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update complete An-Noor website package [skip ci]'
+          git push origin HEAD:main
