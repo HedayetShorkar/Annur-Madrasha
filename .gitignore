@@ -1,0 +1,29 @@
+# Dependencies and generated local caches
+node_modules/
+__pycache__/
+*.py[cod]
+.cache/
+.vite/
+coverage/
+
+# Private runtime configuration; documented placeholders remain tracked
+.env
+.env.*
+!.env.example
+
+# Private server state and local logs
+live-class/data/
+live-class/backups/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Keep the compiled live/ and payments/ pages and the release ZIP tracked.
