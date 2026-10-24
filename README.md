@@ -2,6 +2,10 @@
 
 The existing Bangla/English website, six-step admission form, permanent student IDs, private live classroom administration and payment source are included together.
 
+## Supabase connection
+
+The separate An-Noor project has public connection settings. Admission persistence and administrator provisioning are still pending. See [SUPABASE_CONNECTION.md](SUPABASE_CONNECTION.md).
+
 ## Responsive screens
 
 The public pages, compact navigation, six-step form, classroom portal and receipt desk adapt to phones, tablets and wide monitors. Mobile forms keep their progress visible, controls are easier to tap, and long names or IDs wrap within their cards. See [RESPONSIVE_UPDATE.md](RESPONSIVE_UPDATE.md) for the changes, browser checks and reusable QA tools.
