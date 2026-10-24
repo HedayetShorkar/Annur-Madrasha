@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>An-Noor responsive QA</title><base href="../">
+<style>body{margin:0;font:14px system-ui;background:#e7ece9;color:#173c30}header{position:sticky;top:0;z-index:2;background:#fff;padding:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;border-bottom:1px solid #bccfc3}select,button{font:inherit;padding:9px;border:1px solid #b2c8bc;background:#fff;border-radius:6px}button{cursor:pointer}#stage{padding:18px;overflow:auto}iframe{display:block;background:#fff;border:0;margin:0 auto;box-shadow:0 10px 40px #0002;flex-shrink:0}#report{white-space:pre-wrap;font:12px/1.5 monospace;padding:16px;background:#fff;margin:0 18px 18px;max-height:400px;overflow:auto}#status{font-weight:600}</style>
+<header><label>Page <select id="page"><option value="index.html#home">Home</option><option value="index.html#/admission">Admission</option><option value="live/index.html">Live class</option><option value="payments/index.html">Receipts</option><option value="index.html#/courses">Courses</option><option value="index.html#/login">Login information</option></select></label><label>Width <select id="width"><option>320</option><option>360</option><option selected>390</option><option>480</option><option>600</option><option>768</option><option>820</option><option>1024</option><option>1100</option><option>1280</option><option>1536</option><option>1920</option><option>2560</option></select></label><label>Height <select id="height"><option>375</option><option>568</option><option selected>844</option><option>1024</option></select></label><button id="inspect">Inspect current</button><button id="matrix">Run width matrix</button><span id="status">Ready</span></header>
+<div id="stage"><iframe id="viewport" title="Website under test" width="390" height="844" src="index.html#home"></iframe></div><pre id="report" role="status"></pre>
+<script>
+const frame=document.querySelector('iframe'),page=document.querySelector('#page'),width=document.querySelector('#width'),height=document.querySelector('#height'),report=document.querySelector('#report'),status=document.querySelector('#status');
+function resize(){frame.width=width.value;frame.height=height.value}width.onchange=resize;height.onchange=resize;page.onchange=()=>frame.src=page.value;
+function inspect(){const d=frame.contentDocument,w=frame.contentWindow,vw=d.documentElement.clientWidth;const visible=el=>{const r=el.getBoundingClientRect(),s=w.getComputedStyle(el);return r.width>4&&r.height>4&&s.visibility!=='hidden'&&s.display!=='none'&&s.opacity!=='0'&&!el.closest('[aria-hidden="true"],.skip,.skip-link,.review-honeypot')};const outside=[...d.querySelectorAll('button,input,select,textarea,a,h1,h2,h3,label')].filter(visible).filter(el=>{const r=el.getBoundingClientRect();return (r.left < -2||r.right>vw+2)&&!el.closest('.table-wrap,.history-table-wrap')}).map(el=>({tag:el.tagName,id:el.id,class:el.className,text:el.textContent.trim().slice(0,45),left:Math.round(el.getBoundingClientRect().left),right:Math.round(el.getBoundingClientRect().right)}));return {page:frame.getAttribute('src'),width:vw,height:frame.height,documentOverflow:Math.max(d.documentElement.scrollWidth,d.body.scrollWidth)-vw,outside,formStep:d.querySelector('.admission-position')?.textContent};}
+document.querySelector('#inspect').onclick=()=>report.textContent=JSON.stringify(inspect(),null,2);
+document.querySelector('#matrix').onclick=async()=>{
+ const pages=['index.html#home','index.html#/admission','live/index.html','payments/index.html','index.html#/courses','index.html#/login'],sizes=[320,360,390,600,768,820,1024,1100,1280,1536,1920,2560],results=[];
+ document.querySelector('#matrix').disabled=true;
+ try{
+  for(const p of pages){
+   const url=new URL(p,document.baseURI);url.searchParams.set('qa',Date.now());
+   await new Promise(resolve=>{frame.onload=resolve;frame.src=url.href});
+   await Promise.race([frame.contentDocument.fonts.ready,new Promise(r=>setTimeout(r,1500))]);
+   for(const h of [844,375])for(const n of sizes){
+    status.textContent=p+' · '+n+' × '+h+'px';frame.width=n;frame.height=h;
+    frame.contentDocument.documentElement.getBoundingClientRect();await new Promise(r=>setTimeout(r,75));
+    results.push(inspect());report.textContent=JSON.stringify(results,null,2);
+   }
+  }
+  status.textContent='Completed '+results.length+' layouts';
+ }catch(error){status.textContent='Test failed: '+error.message;}
+ finally{document.querySelector('#matrix').disabled=false;frame.width=width.value;frame.height=height.value;frame.src=page.value;}
+};
+</script></html>

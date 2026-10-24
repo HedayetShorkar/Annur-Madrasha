@@ -1,0 +1,55 @@
+/* The portal remains usable with narrow screens, long names and touch input. */
+html{min-width:0}body{min-width:0}img,video{max-width:100%}
+header{padding-inline:max(16px,calc((100% - 1212px)/2))}
+header>div{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+header .brand{flex:none}.role{overflow-wrap:anywhere;max-width:36ch}
+main{width:100%;padding-inline:clamp(16px,3vw,24px)}
+:where(h1,h2,h3,p,small,label,.notice,.error,.badge){overflow-wrap:break-word}
+:where(.login,.classes,.setup,.monitor-grid,.stats,.heading)>*{min-width:0}
+.login{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(24px,6vw,80px);padding-inline:0}
+input,select{min-width:0;font-size:16px}
+button,.receipt-desk-link{max-width:100%;white-space:normal;line-height:1.5;touch-action:manipulation}
+.heading{flex-wrap:wrap}.heading>div{flex:1 1 250px}.heading>button{flex:0 1 auto}
+.stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stats strong{overflow-wrap:anywhere}.stats span{line-height:1.6}
+.panel,.setup>form,.login form{min-width:0}
+.card-top{gap:10px;flex-wrap:wrap}.badge{max-width:100%}
+.actions>button{flex:0 1 auto;min-height:44px}
+.person{flex-wrap:wrap;gap:12px}
+.person>span{min-width:0;flex:1 1 180px}
+.person>details{min-width:0;flex:1 1 210px;max-width:320px;margin-top:0}
+.credential-card code,.student-id code{overflow-wrap:anywhere;word-break:break-word}
+.table-wrap{max-width:100%;overflow:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.table-wrap table{min-width:620px;table-layout:fixed}
+.table-wrap td,.table-wrap th{overflow-wrap:anywhere}
+.monitor>div:first-child{gap:10px;align-items:center}.monitor>div:first-child>b{min-width:0;overflow-wrap:anywhere}
+.monitor button{flex:none;min-height:44px}
+.classroom{height:clamp(360px,75dvh,900px);min-height:320px}
+.classroom .lk-video-conference,.classroom .lk-room-container{min-width:0;max-width:100%;height:100%}
+.classroom .lk-control-bar{flex-wrap:wrap;gap:6px;padding:8px;min-width:0}
+.classroom .lk-button{min-width:44px;min-height:44px}
+.report-backdrop{padding:16px}.report{max-height:calc(100dvh - 32px);overscroll-behavior:contain}
+footer{padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+@media(max-width:900px){.login{gap:28px}.login h1{font-size:clamp(34px,5vw,48px)}}
+@media(max-width:760px){
+ .login{grid-template-columns:minmax(0,1fr);padding-block:12px}
+ header{gap:12px}.role{max-width:27ch}
+ .stats article{padding:16px 11px}.stats span{font-size:12px}
+ .classes,.setup,.monitor-grid{grid-template-columns:minmax(0,1fr)}
+ .heading h1{font-size:clamp(28px,6vw,40px)}
+ .panel,.login form,.setup>form{padding:22px 18px}
+ .setup-status{padding:18px}.empty{padding:40px 16px}
+}
+@media(max-width:500px){
+ header>div{flex:1;gap:7px;align-items:flex-end}.brand{font-size:23px}
+ .role{font-size:12px;line-height:1.5;max-width:22ch}
+ .heading{gap:14px}.heading>button{width:100%}
+ .stats{gap:8px}.stats article{padding:15px 9px}.stats strong{font-size:26px}
+ .person>span{flex-basis:100%}.person>details{flex-basis:100%;max-width:none}
+ .actions>button{flex:1 1 135px}
+ nav>button,nav>.receipt-desk-link{flex:1 1 135px;text-align:center}
+ .setup-status button{width:100%}
+ .report-backdrop{padding:8px}.report{max-height:calc(100dvh - 16px)}
+}
+@media(max-height:500px) and (max-width:1100px){.classroom{height:calc(100dvh - 90px);min-height:250px}.monitor .lk-room-container{height:240px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}

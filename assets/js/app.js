@@ -144,7 +144,7 @@ function route(){
  seo();
  if(view==='home'){
    const el=document.getElementById(key.slice(1)||'home');
-   requestAnimationFrame(()=>{pat();(el||$('#home')).scrollIntoView({block:'start'});upRv();tk()});
+   requestAnimationFrame(()=>{pat();(el||$('#home')).scrollIntoView({block:'start'});tk()});
  }else{
    scrollTo(0,0);
    const heading=$('#pg-'+view+' h1, #pg-'+view+' .h1');

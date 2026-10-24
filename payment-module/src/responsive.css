@@ -1,0 +1,66 @@
+/* Screen-only refinements keep the existing A4 print layout intact. */
+@media screen{
+ .receipt-app{min-width:0}.desk-wrap{width:calc(100% - clamp(28px,5vw,64px))}
+ .receipt-app :where(h1,h2,h3,p,label,small,.desk-message){overflow-wrap:break-word}
+ .receipt-app :where(button,a){touch-action:manipulation}
+ .receipt-app button{min-height:44px;max-width:100%;white-space:normal}
+ .receipt-app input:not([type=checkbox]),.receipt-app select,.receipt-app textarea{font-size:16px;min-height:48px}
+ .header-inner{flex-wrap:wrap;padding-block:14px}
+ .desk-brand{min-width:0}.desk-brand>span{min-width:0;overflow-wrap:break-word}
+ .header-actions{flex-wrap:wrap}.header-actions>*{min-height:44px}
+ .desk-tabs>button{min-width:0;max-width:100%;flex-wrap:wrap}
+ .workspace-heading>div,.desk-intro>div{min-width:0}
+ .receipt-workspace>*{min-width:0}
+ .editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .receipt-editor legend{line-height:1.6}.receipt-editor legend>span{flex:none}
+ .receipt-app .office-card form>label{min-width:0}
+ .paper-brand>div,.paper-heading>div,.paper-details>div,.payment-details>div{min-width:0}
+ .paper-brand h2,.paper-heading strong{overflow-wrap:break-word}
+ .paper-table{table-layout:fixed}.paper-table td:first-child{width:65%}
+ .paper-table td:last-child{overflow-wrap:anywhere;white-space:normal}
+ .paper-totals{max-width:380px}.paper-totals>div{align-items:flex-start}
+ .paper-totals span{min-width:0;overflow-wrap:break-word}
+ .paper-signatures>div{min-width:0;flex:1}
+ .preview-toolbar{flex-wrap:wrap}.preview-toolbar>span{min-width:0}
+ .history-table-wrap{max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}
+ .history-table{table-layout:fixed;min-width:650px}.history-table td{overflow-wrap:anywhere}
+ .history-pages{gap:8px;flex-wrap:wrap}
+ .desk-footer{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
+}
+@media screen and (max-width:1024px){
+ .receipt-workspace{grid-template-columns:minmax(0,1fr);gap:28px}
+ .receipt-preview{position:static;width:100%;max-width:700px;margin-inline:auto}
+ .receipt-paper{padding:32px 28px 24px}
+ .mobile-preview{display:inline-flex}.intro-seal{display:none}
+}
+@media screen and (max-width:640px){
+ .header-inner{gap:12px}.header-actions{gap:7px}
+ .header-actions .home-link{display:none}
+ .editor-grid{grid-template-columns:minmax(0,1fr)}
+ .editor-grid .wide{grid-column:auto}
+ .receipt-editor fieldset{padding:22px 18px}
+ .workspace-heading{flex-wrap:wrap}.workspace-heading>div{flex-basis:100%}
+ .office-card form{flex-direction:column;align-items:stretch}
+ .office-card form label{flex-basis:auto}
+ .receipt-paper{padding:28px 18px 20px}
+ .paper-brand img{width:58px;height:58px}
+ .paper-brand h2{font-size:17px}.paper-brand h2 span{font-size:14px}
+ .paper-totals{width:100%}.paper-signatures{gap:16px}
+ .paper-details,.payment-details{column-gap:14px}
+ .desk-tabs .receipt-list-button{margin-left:0}
+ .history-heading{flex-wrap:wrap}
+}
+@media screen and (max-width:360px){
+ .desk-brand>span{font-size:14px}.desk-brand img{width:40px;height:40px}
+ .desk-intro h1{font-size:30px}
+ .desk-tabs>button{width:100%;justify-content:center}
+ .header-actions{width:100%;justify-content:flex-end}
+ .receipt-paper{padding-inline:14px}
+ .paper-brand img{width:48px;height:48px}
+ .paper-brand h2{font-size:15px}.paper-brand h2 span{font-size:12px}
+ .paper-heading{align-items:flex-start;flex-wrap:wrap}
+ .paper-details,.payment-details{grid-template-columns:minmax(0,1fr)}
+ .paper-table th,.paper-table td{padding-inline:8px}
+ .preview-toolbar>button{width:100%}
+ .provider-options{grid-template-columns:minmax(0,1fr)}
+}

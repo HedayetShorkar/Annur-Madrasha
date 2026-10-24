@@ -2,6 +2,10 @@
 
 The existing Bangla/English website, six-step admission form, permanent student IDs, private live classroom administration and payment source are included together.
 
+## Responsive screens
+
+The public pages, compact navigation, six-step form, classroom portal and receipt desk adapt to phones, tablets and wide monitors. Mobile forms keep their progress visible, controls are easier to tap, and long names or IDs wrap within their cards. See [RESPONSIVE_UPDATE.md](RESPONSIVE_UPDATE.md) for the changes, browser checks and reusable QA tools.
+
 ## Easier admission dates and times
 
 The start date is now chosen from a full-date list with Today/Tomorrow/Next-month shortcuts. It stays editable after selecting next month. Labelled time cards support exact-hour defaults, 12/24-hour formats, preserved partial entries and ±15-minute adjustments. Existing fee rules and approved date ranges are retained. See [ADMISSION_DATE_TIME.md](ADMISSION_DATE_TIME.md).
