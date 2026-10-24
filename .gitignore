@@ -27,3 +27,7 @@ Thumbs.db
 *.swo
 
 # Keep the compiled live/ and payments/ pages and the release ZIP tracked.
+
+# Supabase local CLI state
+supabase/.temp/
+supabase/.branches/

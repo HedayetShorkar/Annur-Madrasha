@@ -25,3 +25,7 @@ The user explicitly requested on 2026-10-23 that every completed website update 
 - Keep admission/parent-review submission and payment/live-service readiness claims accurate. Source code in GitHub does not mean a production backend or media service is deployed.
 - Do not expose secrets, real environment values or runtime data. Only documented public assets belong in a public hosting web root.
 - Do not enable hosting, GitHub Pages, workflows with deployment side effects, or a new production service solely because code is being uploaded.
+
+## Keep the repository compact
+
+Update `docs/OPERATIONS.md` for current behavior and `docs/HISTORY.md` for delivery history. Do not add separate root update reports for each upgrade. Keep functional source, tests and deployment files when they serve distinct purposes.
