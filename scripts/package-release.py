@@ -24,6 +24,8 @@ def excluded(path: PurePosixPath) -> bool:
         return True
     if path.name.startswith(".env") and path.name != ".env.example":
         return True
+    if path.suffix in {".pem", ".key", ".p12", ".pfx"} or path.parts[:2] == ("live-class", "secrets"):
+        return True
     if path.name.endswith((".log", ".db", ".db-wal", ".db-shm", ".sqlite", ".sqlite-wal", ".sqlite-shm", ".pyc")):
         return True
     if path.name in {".DS_Store", "Thumbs.db", ARCHIVE, ".AnNoor_Payments.zip.tmp"}:

@@ -36,6 +36,9 @@ Six validated steps with Previous/Next navigation, sticky progress and final rev
 
 ## Live classes
 
+The classroom now supports Jitsi Meet (self-hosted JWT or JaaS) inside the existing website. Student IDs and assigned-class access remain private; administrators can open visible silent previews. See [Jitsi connection instructions](docs/OPERATIONS.md#jitsi-live-class-connection). Actual media service configuration and device acceptance are still required. Existing LiveKit deployments remain selectable.
+
+
 `live/index.html` opens the compiled portal. Configure the Node API and media server before using actual classes. Admins issue permanent student IDs and control enrollment; students can access only assigned classes. Public pages do not advertise supervision, and supervision/ID issuance APIs are admin-only. See [STUDENT_ACCESS_UPDATE.md](docs/HISTORY.md), [live-class/README.md](live-class/README.md), and [LIVE_CLASS_DELIVERY.md](docs/HISTORY.md).
 
 ## Future online payment source

@@ -640,3 +640,10 @@ Age boundaries checked against actual validation expression: 4/19/4.9/5.5 reject
 
 ## Phase 2.8
 Confirmed six bilingual FAQ answer pairs and no remaining FAQ placeholder. JavaScript syntax, structural and existing logic tests passed. Content changes have not undergone a new browser test.
+
+
+---
+
+## Jitsi compatibility — 25 October 2026
+
+Added self-hosted/JaaS signed Jitsi join adapters and an embedded classroom with visible silent supervision. Preserved existing student IDs, private role controls, receipt/admission data and LiveKit selection. Jitsi dashboard metrics and verified attendance are marked unavailable; standard iframe controls do not imply server-level moderation. Current setup and verification boundaries are in OPERATIONS.md. No real media service was activated.

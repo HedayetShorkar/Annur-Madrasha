@@ -31,3 +31,10 @@ Thumbs.db
 # Supabase local CLI state
 supabase/.temp/
 supabase/.branches/
+
+# Private Jitsi/JaaS signing material
+live-class/secrets/
+*.pem
+*.key
+*.p12
+*.pfx

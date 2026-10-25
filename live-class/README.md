@@ -1,10 +1,12 @@
 # An-Noor Live Classroom
 
-A first working implementation of website-based classes and central supervision. It contains a React frontend, a Node.js API, SQLite storage and a LiveKit media adapter. It does **not** yet have a deployed media server or verified real audio/video calls.
+The website supports embedded **Jitsi Meet** with self-hosted HS256 tokens or JaaS RS256 tokens. Existing LiveKit installations remain selectable. The private Node/SQLite service keeps administrator-issued student IDs, password sessions and assigned-class checks. See the [current Jitsi setup](../docs/OPERATIONS.md#jitsi-live-class-connection) before enabling a provider.
 
-The supplied `server.js` and `LiveClassSecure.jsx` are retained under `reference/` unchanged. They showed a Jitsi teacher dashboard, but lacked central supervision, authenticated student assignments and durable attendance. The implementation uses LiveKit server room/participant APIs for these controls. It is not a Zoom account integration. Existing payments still use their separate Supabase module; classroom accounts are separate in this release.
+The supplied code under `reference/` remains unchanged as recovery/reference material; it is not the running server. This release does not enable anonymous student joins or the reference code's public registration flow. No real Jitsi domain or signing credentials have been supplied, and no media deployment or real camera/microphone call was performed.
 
-## Included workflows
+**Provider differences:** Jitsi IFrame handles in-room moderation and visible silent previews. Without an additional trusted provider integration, server room metrics, forced media disconnection and verified attendance are unavailable; the dashboard says so. LiveKit retains its existing server-side controls and sampled attendance. Classroom accounts remain separate from the Supabase admission office.
+
+## Existing LiveKit workflows (when VIDEO_PROVIDER=livekit)
 
 - Administrator creates teacher/student accounts, schedules classes and assigns students.
 - Teachers access only their own classes. Students access only assigned, unblocked classes.
@@ -31,23 +33,23 @@ Without media credentials, account/class setup works and the UI states that vide
 ## Deployment
 
 1. Place source outside the web server's public directory, for example `/srv/annoor/source/`. Run `npm ci` and `npm run build` in `live-class/`. This writes the browser build to the adjacent `live/` folder.
-2. `node scripts/stage-public.mjs /srv/annoor/public` stages only `index.html`, `assets/`, `live/`, and `payments/` into an **empty** directory. Never serve the full source ZIP or its `.env`, database, backup, reference or server directories.
+2. `node scripts/stage-public.mjs /srv/annoor/public` stages only `index.html`, `assets/`, `live/`, `payments/`, and `admin/` into an **empty** directory. Never serve the full source ZIP or its `.env`, database, backup, reference or server directories.
 3. Set production variables in `/etc/annoor/live.env`: `NODE_ENV=production`, `APP_ORIGIN=https://your-domain.example`, `PORT=4100`, `DB_PATH=/var/lib/annoor-live/live.sqlite`, media credentials and `TRUST_PROXY_HOPS=1` for the single loopback Nginx proxy below. Configure a dedicated user and private writable data directory; the environment file should be readable only by the service user/root. Do not include the bootstrap password in the runtime file.
 4. Bootstrap the administrator with the **same DB_PATH** in a trusted terminal. Then remove the bootstrap password. Use the provided systemd unit as a template and verify `/usr/bin/node` points to Node 24.19+.
 5. Use `deploy/nginx.conf.example` inside your real HTTPS virtual host. The API listens on loopback only. The proxy overwrites forwarding headers; do not blindly trust arbitrary client `X-Forwarded-For` values.
-6. Configure LiveKit Cloud or deploy LiveKit separately with public TLS/WSS and the required WebRTC/TURN/UDP networking. Nginx's classroom API proxy alone is not a media server.
+6. Configure the selected Jitsi or LiveKit service with public HTTPS/media networking. Follow the Jitsi operations guide for token verification and moderator assignment. Nginx's classroom API proxy alone is not a media server.
 7. Open `/live/` and test with two real devices on different networks before admitting students. Verify camera/mic permission, screen sharing, mobile reconnect, student isolation, mute, removal and room termination. Use the media provider's deployment guidance for load and capacity; concurrent-class capacity has not been benchmarked here.
 
-The service is one Node API process with a persistent local SQLite database. For multiple API instances, migrate storage and rate limiting to shared services first. A single class currently permits up to 100 media participants, including staff. The number of simultaneous rooms depends on the media server and bandwidth; no unlimited-capacity claim is made.
+The service is one Node API process with a persistent local SQLite database. For multiple API instances, migrate storage and rate limiting to shared services first. The existing LiveKit adapter requests a 100-participant room limit, including staff; Jitsi capacity and participant limits belong to its deployment. The number of simultaneous rooms depends on the media server and bandwidth; no unlimited-capacity claim is made.
 
-## Security and timing limits
+## Shared access rules and LiveKit-specific media timing limits
 
 - Session cookies are HttpOnly, SameSite=Strict and Secure in production. Session tokens are hashed in the database; role/enrolment checks run on the API, never only in the UI. Passwords are hashed using bcrypt.
-- The media join JWT is room-scoped and lasts 60 seconds. Room-admin credentials are never sent to the browser. Existing calls can continue beyond this initial JWT lifetime according to LiveKit reconnect behavior.
+- Both providers issue room-scoped join JWTs expiring 60 seconds after issuance. Jitsi permits five seconds of clock skew before issuance. Tokens are for joining; expiration does not promise termination of an ongoing media call. LiveKit: Room-admin credentials are never sent to the browser. Existing calls can continue beyond this initial JWT lifetime according to LiveKit reconnect behavior.
 - **Lock means stop issuing new student tokens.** A token already issued before locking may connect during its remaining lifetime. It does not disconnect current students.
-- Removing a student marks the roster blocked before asking the media server to disconnect them. End marks the class ended before asking the media server to delete the room. The server retries cleanup via its ten-second reconciliation cycle and re-checks current identities. Previously issued or refreshed media credentials may briefly connect before that check, especially across different LiveKit deployments. These controls are not instantaneous global token revocation. Effective removal requires API worker and media API connectivity.
-- One failed classroom cleanup does not stop checks for other classrooms. Errors are shown as unavailable/pending, not confirmed success. Mic mute affects currently published audio; students can unmute themselves. Forced unmute and persistent mic-permission restrictions are not implemented.
-- Media status polling continues during active calls. Session expiration/logout stops application access, but logout is not a server-wide media revocation command. Account deactivation is enforced on connected identities by reconciliation.
+- LiveKit: removing a student marks the roster blocked before asking the media server to disconnect them. End marks the class ended before asking the media server to delete the room. The server retries cleanup via its ten-second reconciliation cycle and re-checks current identities. Previously issued or refreshed media credentials may briefly connect before that check, especially across different LiveKit deployments. These controls are not instantaneous global token revocation. Effective removal requires API worker and media API connectivity.
+- LiveKit: one failed classroom cleanup does not stop checks for other classrooms. Errors are shown as unavailable/pending, not confirmed success. Mic mute affects currently published audio; students can unmute themselves. Forced unmute and persistent mic-permission restrictions are not implemented.
+- Website class/access polling continues during active calls. Closing a class or removing its assignment closes the embedded website session on a successful poll (normally every six seconds). This does not control direct Jitsi sessions outside the website. LiveKit: Session expiration/logout stops application access, but logout is not a server-wide media revocation command. Account deactivation is enforced on connected identities by reconciliation.
 - All supervision is visible; no hidden participation or recording. The release does not implement billing integration, recurring timetable generation, email delivery, MFA or self-service email password recovery. The administrator can reset teacher/student passwords; users can change their own passwords. Protect the administrator account and backup the database.
 
 ## Operations
@@ -60,7 +62,7 @@ The service is one Node API process with a persistent local SQLite database. For
 
 ## Validation performed
 
-`npm test` uses actual SQLite and HTTP middleware with an in-memory media adapter; the token test uses the real LiveKit SDK. `npm run build` compiles the frontend. These tests do not replace a real media-server/device integration test.
+`npm test` uses actual SQLite/HTTP middleware and both provider adapters. It verifies Jitsi HS256 and JaaS RS256 signatures and authorization as well as the original LiveKit/receipt regressions. `npm run build` compiles the frontend. These tests do not replace a real media-server/device integration test.
 
 Official references: [LiveKit rooms](https://docs.livekit.io/intro/basics/rooms-participants-tracks/rooms/), [participant management](https://docs.livekit.io/intro/basics/rooms-participants-tracks/participants/), [self-hosting](https://docs.livekit.io/home/self-hosting/), [React components](https://docs.livekit.io/reference/components/react/).
 
