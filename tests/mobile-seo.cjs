@@ -60,8 +60,20 @@ async function mobileAndDecorations(){
  const clockObserver=observers.find(x=>x.targets.length===1&&x.targets[0].id==='global');clockObserver.emit(d.getElementById('global'),false);w.Date.now=()=>Date.parse('2026-10-25T12:34:00Z');tick.fn();assert.equal(clockWrites,1);clockObserver.emit(d.getElementById('global'),true);assert.equal(clockWrites,2);
  hidden=true;d.dispatchEvent(new w.Event('visibilitychange'));tick.fn();assert.equal(clockWrites,2);assert.ok(d.documentElement.hasAttribute('data-page-paused'));hidden=false;d.dispatchEvent(new w.Event('visibilitychange'));assert.ok(!d.documentElement.hasAttribute('data-page-paused'));
  const bar=d.querySelector('.mobile-quick');assert.equal(bar.hidden,false);w.location.hash='#/admission';w.dispatchEvent(new w.HashChangeEvent('hashchange'));assert.equal(bar.hidden,true);w.location.hash='#home';w.dispatchEvent(new w.HashChangeEvent('hashchange'));assert.equal(bar.hidden,false);
+ // The phone shortcut must not repeat an action that is already readable on screen.
+ const inline=d.querySelector('.hero .live-entry');let inlineTop=120;
+ inline.getClientRects=()=>[{top:inlineTop,bottom:inlineTop+48,left:20,right:240,width:220,height:48}];inline.getBoundingClientRect=()=>inline.getClientRects()[0];
+ w.dispatchEvent(new w.Event('scroll'));await pause();assert.equal(bar.hidden,true);
+ inlineTop=900;w.dispatchEvent(new w.Event('scroll'));await pause();assert.equal(bar.hidden,false);
+ // Opening the main menu hides the dock even when no inline action is in view.
+ d.getElementById('menu-toggle').click();await pause();assert.equal(bar.hidden,true);assert.ok(d.documentElement.classList.contains('mobile-menu-open'));
+ d.querySelector('.site-nav .brand').click();await pause();assert.equal(bar.hidden,false);assert.ok(!d.documentElement.classList.contains('mobile-menu-open'));
+ // Recitation remains available from each teacher's profile, without repeated players on the homepage.
+ assert.equal(d.querySelectorAll('#tg2 .ap').length,0);d.querySelector('#tg2 .vp').click();await pause();
+ assert.ok(d.querySelector('dialog[open] .ap audio'));assert.ok(d.querySelector('dialog[open] .ld input[type=file]'));assert.equal(bar.hidden,true);
+ d.querySelector('dialog[open]').close();await pause();assert.equal(bar.hidden,false);
  const dialog=d.querySelector('dialog');dialog.showModal();await pause();assert.equal(bar.hidden,true);dialog.close();await pause();assert.equal(bar.hidden,false);
  const input=d.createElement('textarea');d.body.append(input);input.focus();vh=460;viewport.dispatchEvent(new w.Event('resize'));assert.ok(d.documentElement.classList.contains('keyboard-open'));assert.equal(bar.hidden,true);input.blur();vh=800;viewport.dispatchEvent(new w.Event('resize'));assert.equal(bar.hidden,false);
  assert.equal(w.localStorage.getItem('annoor-language'),null);assert.deepEqual(errors,[]);dom.window.close();
 }
-(async()=>{publicMarkup();await stagedSeo();await mobileAndDecorations();console.log('PASS: no-JS plans and truthful SEO, domain-only canonical/sitemap generation, idempotency and private-file exclusion, lazy single-section decoration, keyboard-resize avoidance, minute-cached visible clock and mobile navigation/dialog/keyboard isolation.');})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{publicMarkup();await stagedSeo();await mobileAndDecorations();console.log('PASS: no-JS plans and truthful SEO, domain-only canonical/sitemap generation, idempotency and private-file exclusion, lazy single-section decoration, keyboard-resize avoidance, minute-cached visible clock, duplicate-action/menu suppression, preserved teacher recitation and mobile navigation/dialog/keyboard isolation.');})().catch(error=>{console.error(error);process.exitCode=1;});

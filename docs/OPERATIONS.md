@@ -194,6 +194,28 @@ Updated 25 October 2026. The owner estimates about 80% of visitors use phones; t
 
 The decorative typography remains at 8% opacity. On phones, bitmap density is capped at device scale 1 instead of up to 2, with bounded placement attempts and ornaments; nearby sections render one at a time during idle periods. A completed section is reused at the same dimensions. Width changes can refresh visible backgrounds; keyboard-only height changes do not repaint the entire page. Hidden/offscreen decorations pause relevant CSS animation. Content, forms and the six-step controller remain independent of the idle decoration queue.
 
+### Compact phone homepage
+
+Updated 25 October 2026 after the mobile/search foundation. The mobile hero now has Bismillah, the original animated logo, its caption and the main copy in that visual and document order. Desktop keeps a two-column composition below Bismillah. Logo breathing/waves, the 8% ayah typography and the live clock animation are retained.
+
+| পরিবর্তন | ব্যবহারকারীর সুবিধা |
+| --- | --- |
+| বিসমিল্লাহর ঠিক নিচে অ্যানিমেটেড লোগো | ফোনে পেজের পরিচিতি সঠিক ক্রমে দেখা যায় |
+| একই গন্তব্যের বাটন দৃশ্যমান থাকলে নিচের পুরো দ্রুত-বার সাময়িক আড়াল | একই সময়ে একই কাজের বাটন পেজ ও ডকে দুবার দেখা এড়ায়; ফাঁকা জায়গা স্থির রাখায় কনটেন্ট লাফায় না |
+| ফোনে পূর্ণ উচ্চতার মেনু; মেনু/ডায়ালগ/কিবোর্ডে ডক আড়াল | পেছনের বাটন ঢেকে যায়; মেনু বন্ধ করলে স্বাভাবিক স্ক্রল ফিরে আসে |
+| সংক্ষিপ্ত feature, package, teacher, clock, FAQ, review ও footer বিন্যাস | একই তথ্য পড়তে কম স্ক্রল লাগে |
+| প্যাকেজ অনুযায়ী আলাদা আবেদন-বাটনের নাম | Basic, Standard ও Premium-এর আবেদন আলাদা বোঝা যায় |
+| তিলাওয়াতের player ও স্থানীয় audio preview সংশ্লিষ্ট শিক্ষক-প্রোফাইলে | হোমপেজে একই ধরনের audio controls বারবার থাকে না; প্রোফাইল খুললে আগের সুবিধাগুলো পাওয়া যায় |
+| এমেরাল্ড, আইভরি ও হালকা সোনালি | কালচে বড় অংশ কমে; light/dark-এ পাঠযোগ্য রং থাকে |
+
+No package subjects, approved prices/days/duration, institutional explanation, class-access conditions, teacher identities, time-zone choices, FAQ answers, review workflow or admission policy were removed. The six FAQ answers are still open without a click, and all five subject rows remain in every package card. Teacher biographies/methodology/recitation and the local unsaved audio preview remain inside the existing profile dialog. No photo/logo bytes were modified. The palette is a deliberate updated combination informed by the owner's Phase 1 preference; the old Phase 1 code was not restored over current features.
+
+At the same native Chromium 390×844 frame (375px content area with its desktop scrollbar), Bangla/light homepage document height measured **12,897px → 8,428px**, a **34.65% reduction**. All content remained accessible. This measures layout length only, not network speed, Core Web Vitals, ranking or a physical phone. Height varies with language, fonts and viewport.
+
+This composition was checked in **208 native Chromium layouts**: homepage 64 (8 frame widths × 2 heights × 2 languages × 2 themes), guide 32, six active admission-section snapshots 96, and teacher profile 16. Frame widths included 320/360/390/412px phones, 600/768px, and 1280/1920px desktop as applicable; the actual content width was also checked. No document/control horizontal overflow was found. The phone hero order was verified on the visible homepage, and the six FAQ answers remain visibly expanded. Admission snapshots use fictional local presentation state, without submitting an application or contacting a real backend. Physical Android/iPhone, native keyboards and actual media calls remain outside these checks.
+
+`tests/mobile-seo.cjs` now also verifies inline-action/dock suppression, menu open/brand-close scroll-lock cleanup, and access to teacher audio through the profile. Existing admission/date/time/schedule/review/submission checks and `tests/verify.py` passed for this update. No classroom/receipt backend or compiled application code changed; their previously verified behavior remains separate from this presentation update. This release updates source and the complete ZIP; it does not configure production hosting or enable a media/payment service.
+
 ### Activate on the actual domain
 
 The actual public origin, official contact details and first admission-admin email are still owner inputs. Do not substitute the GitHub repository URL, Supabase API host, internal preview or the separate examination-board institution/domain. No external production website, paid service, Search Console property or analytics account was created in this update.

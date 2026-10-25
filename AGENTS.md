@@ -22,6 +22,7 @@ The user explicitly requested on 2026-10-23 that every completed website update 
 
 - Mobile comes first: the owner expects roughly 80% of visitors on phones. Check the public pages, six admission steps, student/teacher/admin classroom views and receipt workflows at 320, 360, 390 and 412px as applicable. Keep touch controls readable, support keyboard/safe-area changes, and preserve desktop access. Browser-dependent features must disclose their real limits; local recording still requires a supported operator computer.
 - For each update, explain the concrete improvement, its expected effect and what was actually measured. Keep SEO content accurate, avoid invented credentials/reviews/rankings, and distinguish prepared SEO files from activated domain/Search Console configuration.
+- Keep the phone hero ordered as Bismillah → animated logo → main copy. Avoid showing the bottom shortcuts beside an already-visible action for the same destination. Keep the homepage compact, the FAQ answers open, and the emerald/ivory/champagne palette readable in both themes.
 
 - This is the An-Noor online madrasa, not the separate Dhulerchar examination-board application.
 - Preserve the approved admission ages (5–18), fee policy, six-step form, package schedules and existing design unless the user requests a change.

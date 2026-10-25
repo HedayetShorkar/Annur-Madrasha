@@ -12,6 +12,8 @@ Historical root update reports have been consolidated into [one history document
 
 Mobile is the default priority: the owner expects about 80% of visits from phones. This release adds thumb-friendly quick actions, keyboard/dialog-aware navigation, an expanded classroom view and a crawlable bilingual [parent guide](learn/index.html). Plan prices and class days are present in the original HTML, before JavaScript runs. Decorative backgrounds render nearby sections during idle time; the clock avoids rebuilding unchanged/offscreen text.
 
+The compact homepage places its animated logo directly below Bismillah on phones, uses emerald/ivory/champagne surfaces, and hides the bottom shortcuts while equivalent inline actions or the main menu are visible. Package subjects and FAQ answers stay visible; teacher recitation controls are available inside each profile. At the same 390px browser frame, the Bangla/light homepage measured 12,897px before and 8,428px after (about 35% shorter). This is a layout measurement, not a load-speed result. See the current composition and verification notes in [operations](docs/OPERATIONS.md#compact-phone-homepage).
+
 The release includes truthful search/social metadata, private-portal noindex tags, `robots.txt`, a 404 page, and a domain-specific canonical/sitemap generator. The actual public domain and Search Console are not configured yet. Read [changes, expected effects, deployment and growth priorities](docs/OPERATIONS.md#mobile-first-and-bangladesh-search-visibility). No rank, real-phone speed score or increased enrollment is claimed.
 
 ## Responsive screens

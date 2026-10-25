@@ -21,7 +21,7 @@
   document.addEventListener('click', event => {
     if (!nav.contains(event.target)) setMenu(false);
     if (!more.contains(event.target)) more.open = false;
-    if (event.target.closest('#primary-menu a')) setMenu(false);
+    if (event.target.closest('.site-nav a')) setMenu(false);
   });
   nav.addEventListener('focusout', () => {
     setTimeout(() => { if (!nav.contains(document.activeElement)) setMenu(false); }, 0);
