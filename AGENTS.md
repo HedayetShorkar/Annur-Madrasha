@@ -20,6 +20,9 @@ The user explicitly requested on 2026-10-23 that every completed website update 
 
 ## Existing product boundaries
 
+- Mobile comes first: the owner expects roughly 80% of visitors on phones. Check the public pages, six admission steps, student/teacher/admin classroom views and receipt workflows at 320, 360, 390 and 412px as applicable. Keep touch controls readable, support keyboard/safe-area changes, and preserve desktop access. Browser-dependent features must disclose their real limits; local recording still requires a supported operator computer.
+- For each update, explain the concrete improvement, its expected effect and what was actually measured. Keep SEO content accurate, avoid invented credentials/reviews/rankings, and distinguish prepared SEO files from activated domain/Search Console configuration.
+
 - This is the An-Noor online madrasa, not the separate Dhulerchar examination-board application.
 - Preserve the approved admission ages (5–18), fee policy, six-step form, package schedules and existing design unless the user requests a change.
 - Keep admission/parent-review submission and payment/live-service readiness claims accurate. Source code in GitHub does not mean a production backend or media service is deployed.

@@ -33,7 +33,7 @@ Without media credentials, account/class setup works and the UI states that vide
 ## Deployment
 
 1. Place source outside the web server's public directory, for example `/srv/annoor/source/`. Run `npm ci` and `npm run build` in `live-class/`. This writes the browser build to the adjacent `live/` folder.
-2. `node scripts/stage-public.mjs /srv/annoor/public` stages only `index.html`, `assets/`, `live/`, `payments/`, and `admin/` into an **empty** directory. Never serve the full source ZIP or its `.env`, database, backup, reference or server directories.
+2. `node scripts/stage-public.mjs /srv/annoor/public` stages only `index.html`, `assets/`, `learn/`, `robots.txt`, `404.html`, `live/`, `payments/`, and `admin/` into an **empty** directory. Never serve the full source ZIP or its `.env`, database, backup, reference or server directories.
 3. Set production variables in `/etc/annoor/live.env`: `NODE_ENV=production`, `APP_ORIGIN=https://your-domain.example`, `PORT=4100`, `DB_PATH=/var/lib/annoor-live/live.sqlite`, media credentials and `TRUST_PROXY_HOPS=1` for the single loopback Nginx proxy below. Configure a dedicated user and private writable data directory; the environment file should be readable only by the service user/root. Do not include the bootstrap password in the runtime file.
 4. Bootstrap the administrator with the **same DB_PATH** in a trusted terminal. Then remove the bootstrap password. Use the provided systemd unit as a template and verify `/usr/bin/node` points to Node 24.19+.
 5. Use `deploy/nginx.conf.example` inside your real HTTPS virtual host. The API listens on loopback only. The proxy overwrites forwarding headers; do not blindly trust arbitrary client `X-Forwarded-For` values.
@@ -105,3 +105,9 @@ In a joined class, its assigned teacher or the administrator can use **ক্ল
 Files stay on the recording computer. A teacher recording on their computer does not transfer that file to the owner's computer. For a local owner copy, the administrator must join and record on their own computer; staff may alternatively transfer a finished file outside this module. Nothing is uploaded, stored in Supabase or published in the future recorded-course section.
 
 Back up SQLite before upgrading. Startup adds schema version 3 (`class_lessons`, `student_lesson_reports`, `local_recording_notices`) in the existing additive migration, preserving IDs, passwords, classes and receipts. See [operations, API, tests and browser limits](../docs/OPERATIONS.md#learning-records-and-local-recording).
+
+## Phone classroom view and public SEO preparation
+
+Joined students/teachers can expand the existing classroom into the available browser viewport and return without reconnecting the media iframe. This uses CSS rather than relying on device-specific fullscreen permission. The expanded toolbar keeps an exit button and any active recording notice visible, with safe-area and short-landscape sizing. This does not add mobile local-recording support: recording remains a supported-computer function, as described above.
+
+From the repository root, stage the public release, then run `node scripts/prepare-seo.mjs /absolute/staged-public https://YOUR_REAL_DOMAIN` with the institution's actual HTTPS origin. Replace the placeholder; the script refuses placeholder/invalid hosts and source-tree output. It writes canonical/social URLs, the two public sitemap entries and the robots sitemap declaration only in the staging directory. Copy all staged files to the actual host. The source checkout intentionally has no guessed production canonical or sitemap URL. See [current operations](../docs/OPERATIONS.md#mobile-first-and-bangladesh-search-visibility).

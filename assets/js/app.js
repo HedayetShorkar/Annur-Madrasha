@@ -31,18 +31,61 @@ function mul(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 function hit(A,B){const dx=B.cx-A.cx,dy=B.cy-A.cy;if(dx*dx+dy*dy>(A.r+B.r)**2)return 0;
 for(const O of[A,B])for(const x of[[O.c,O.s],[-O.s,O.c]]){const pr=Q=>Q.hw*Math.abs(x[0]*Q.c+x[1]*Q.s)+Q.hh*Math.abs(-x[0]*Q.s+x[1]*Q.c);if(Math.abs(dx*x[0]+dy*x[1])>pr(A)+pr(B))return 0}return 1}
 const FS=['Aref Ruqaa','Amiri','Scheherazade New'];
-function pat(){if(!$('#why').offsetWidth)return;const E=V.map(v=>document.querySelector(v[0])),A=E.map(e=>e.offsetWidth*e.offsetHeight),T=A.reduce((a,b)=>a+b,0),sc=Math.min(2,devicePixelRatio||1);let p=0,css='';
-V.forEach((v,i)=>{const w=E[i].offsetWidth,h=E[i].offsetHeight,R=mul(i*97+13),n=i<V.length-1?Math.min(Math.round(AY.length*A[i]/T),AY.length-p):AY.length-p,cv=document.createElement('canvas');cv.width=w*sc;cv.height=h*sc;const g=cv.getContext('2d');g.scale(sc,sc);g.fillStyle=v[4];g.textAlign='center';g.textBaseline='middle';
-const fo=(s,f)=>s+'px "'+f+'",serif',it=AY.slice(p,p+n).map(t=>{const f=FS[Math.floor(R()*3)];g.font=fo(24,f);return{t,f,m:g.measureText(t).width}}).sort((a,b)=>b.m-a.m);p+=n;
-const S=it.reduce((s,o)=>s+(o.m+6)*34,0)||1,k=Math.min(2.6,Math.max(.7,Math.sqrt(.5*w*h/S))),P=[];
-const ang=()=>{const r=R(),d=R()<.5?1:-1;return r<.55?(R()-.5)*.35:r<.78?d*(.5+R()*.4):r<.9?d*(1.35+R()*.3):d*(.15+R()*.3)};
-const put=(t,f,s0,o)=>{for(let sh=0;sh<9;sh++){const z=s0*Math.pow(.88,sh);g.font=fo(z,f);const m=o?z:g.measureText(t).width,hw=m/2+z*.1,hh=o?z*.55:z*.65;for(let q=0;q<(o?40:240);q++){const a=ang(),c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a)),ex=hw*c+hh*s,ey=hw*s+hh*c;if(ex*2>w||ey*2>h)continue;const O={cx:ex+R()*(w-2*ex),cy:ey+R()*(h-2*ey),hw,hh,c:Math.cos(a),s:Math.sin(a),r:Math.hypot(hw,hh)};if(P.some(b=>hit(O,b)))continue;P.push(O);g.save();g.translate(O.cx,O.cy);g.rotate(a);g.fillText(t,0,0);g.restore();return 1}if(o)return 0}return 0};
-it.forEach(o=>put(o.t,o.f,24*k*(.82+R()*.4),0));
-for(let q=0;q<400;q++)put('\u06DE','Amiri',13+R()*11,1);
-const u=cv.toDataURL();css+=v[5]?`${v[1]}{background:url("${u}") 0 0/100% 100% no-repeat,${v[5]}}`:`${v[1]}{background-image:url("${u}");background-size:100% 100%;background-repeat:no-repeat}`});
-if(pst)pst.remove();pst=document.createElement('style');pst.textContent=css;document.head.appendChild(pst)}
-addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(pat,300)});
-Promise.all(['Aref Ruqaa','Amiri','Scheherazade New'].map(f=>document.fonts.load('40px "'+f+'"','نور'))).then(pat,pat);
+// Paint nearby decoration during idle time, one section at a time. Keyboard-only
+// height changes never rebuild page-sized bitmaps. Text remains at 8% opacity.
+const patternRules=new Map(),patternSizes=new Map(),patternPending=new Set(),patternVisible=new Set([0]);
+let patternReady=false,patternIdle=null,patternWidth=innerWidth;
+function drainPatterns(){
+ patternIdle=null;if(!patternReady||document.hidden||$('#pg-home').hidden)return;
+ const index=patternPending.values().next().value;if(index===undefined)return;
+ patternPending.delete(index);try{pat(index);}catch{/* Optional decoration must not interrupt the page. */}schedulePatterns();
+}
+function schedulePatterns(){
+ if(patternIdle!==null||!patternReady||!patternPending.size||document.hidden||$('#pg-home').hidden)return;
+ patternIdle='requestIdleCallback' in window?requestIdleCallback(drainPatterns,{timeout:1500}):setTimeout(drainPatterns,32);
+}
+function pat(index){
+ if(typeof index!=='number'){patternVisible.forEach(i=>patternPending.add(i));schedulePatterns();return;}
+ if(!$('#why').offsetWidth)return;
+ const E=V.map(v=>document.querySelector(v[0])),A=E.map(e=>e.offsetWidth*e.offsetHeight),T=A.reduce((a,b)=>a+b,0),mobile=matchMedia('(max-width:700px)').matches,sc=Math.min(mobile?1:1.5,devicePixelRatio||1);let p=0;
+ V.forEach((v,i)=>{
+  const n=i<V.length-1?Math.min(Math.round(AY.length*A[i]/T),AY.length-p):AY.length-p,words=AY.slice(p,p+n);p+=n;
+  if(i!==index)return;
+  const w=E[i].offsetWidth,h=E[i].offsetHeight,key=w+'x'+h+'x'+sc;
+  if(!w||!h||patternSizes.get(i)===key)return;
+  const R=mul(i*97+13),cv=document.createElement('canvas');cv.width=w*sc;cv.height=h*sc;const g=cv.getContext('2d');if(!g)return;
+  g.scale(sc,sc);g.fillStyle=v[4];g.textAlign='center';g.textBaseline='middle';
+  const fo=(size,font)=>size+'px "'+font+'",serif',it=words.map(t=>{const f=FS[Math.floor(R()*3)];g.font=fo(24,f);return{t,f,m:g.measureText(t).width}}).sort((a,b)=>b.m-a.m);
+  const S=it.reduce((sum,o)=>sum+(o.m+6)*34,0)||1,k=Math.min(2.6,Math.max(.7,Math.sqrt(.5*w*h/S))),P=[];
+  const ang=()=>{const r=R(),d=R()<.5?1:-1;return r<.55?(R()-.5)*.35:r<.78?d*(.5+R()*.4):r<.9?d*(1.35+R()*.3):d*(.15+R()*.3)};
+  const put=(t,f,s0,ornament)=>{
+   for(let shrink=0;shrink<7;shrink++){
+    const z=s0*Math.pow(.88,shrink);g.font=fo(z,f);const m=ornament?z:g.measureText(t).width,hw=m/2+z*.1,hh=ornament?z*.55:z*.65;
+    for(let attempt=0;attempt<(ornament?20:mobile?80:120);attempt++){
+     const a=ang(),c=Math.abs(Math.cos(a)),sn=Math.abs(Math.sin(a)),ex=hw*c+hh*sn,ey=hw*sn+hh*c;if(ex*2>w||ey*2>h)continue;
+     const O={cx:ex+R()*(w-2*ex),cy:ey+R()*(h-2*ey),hw,hh,c:Math.cos(a),s:Math.sin(a),r:Math.hypot(hw,hh)};if(P.some(b=>hit(O,b)))continue;
+     P.push(O);g.save();g.translate(O.cx,O.cy);g.rotate(a);g.fillText(t,0,0);g.restore();return;
+    }
+    if(ornament)return;
+   }
+  };
+  it.forEach(o=>put(o.t,o.f,24*k*(.82+R()*.4),false));
+  for(let q=0;q<(mobile?64:160);q++)put('\u06DE','Amiri',13+R()*11,true);
+  const u=cv.toDataURL();patternRules.set(i,v[5]?`${v[1]}{background:url("${u}") 0 0/100% 100% no-repeat,${v[5]}}`:`${v[1]}{background-image:url("${u}");background-size:100% 100%;background-repeat:no-repeat}`);
+  if(!pst){pst=document.createElement('style');pst.id='annoor-patterns';document.head.appendChild(pst);}
+  pst.textContent=[...patternRules.values()].join('');patternSizes.set(i,key);
+ });
+}
+if('IntersectionObserver' in window){
+ const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+  const index=V.findIndex(v=>document.querySelector(v[0])===entry.target);if(index<0)return;
+  entry.target.classList.toggle('outside-viewport',!entry.isIntersecting);
+  if(entry.isIntersecting){patternVisible.add(index);patternPending.add(index);schedulePatterns();}else{patternVisible.delete(index);patternPending.delete(index);}
+ }),{rootMargin:'180px 0px'});V.forEach(v=>observer.observe(document.querySelector(v[0])));
+}else V.forEach((_,i)=>patternVisible.add(i));
+addEventListener('resize',()=>{if(Math.abs(innerWidth-patternWidth)<8)return;patternWidth=innerWidth;clearTimeout(rt);rt=setTimeout(pat,400);});
+document.addEventListener('visibilitychange',()=>{document.documentElement.toggleAttribute('data-page-paused',document.hidden);if(!document.hidden)pat();});
+Promise.all(FS.map(f=>document.fonts?.load('40px "'+f+'"','نور'))).then(()=>{patternReady=true;pat();},()=>{patternReady=true;pat();});
 
 // Remember the visitor's explicit language preference. Storage can be unavailable in private modes.
 try { const savedLanguage=localStorage.getItem('annoor-language'); if(savedLanguage==='bn'||savedLanguage==='en') document.documentElement.lang=savedLanguage; } catch (_) {}
@@ -126,15 +169,18 @@ const status=$('#admission-submit-status');status.innerHTML=B('অনলাই�
 const GZ=[['🇬🇧','যুক্তরাজ্য','United Kingdom','Europe/London','লন্ডন','London'],['🇺🇸','যুক্তরাষ্ট্র','USA','America/New_York','নিউ ইয়র্ক','New York'],['🇨🇦','কানাডা','Canada','America/Toronto','টরন্টো','Toronto'],['🇦🇺','অস্ট্রেলিয়া','Australia','Australia/Sydney','সিডনি','Sydney'],['🇸🇦','সৌদি আরব','Saudi Arabia','Asia/Riyadh','রিয়াদ','Riyadh'],['🇦🇪','সংযুক্ত আরব আমিরাত','UAE','Asia/Dubai','দুবাই','Dubai'],['🇶🇦','কাতার','Qatar','Asia/Qatar','দোহা','Doha'],['🇰🇼','কুয়েত','Kuwait','Asia/Kuwait','কুয়েত সিটি','Kuwait City'],['🇲🇾','মালয়েশিয়া','Malaysia','Asia/Kuala_Lumpur','কুয়ালালামপুর','Kuala Lumpur']];
 let gs=0;const bdz=s=>String(s).replace(/\d/g,c=>'০১২৩৪৫৬৭৮৯'[c]),bp=h=>h<4?'রাত':h<6?'ভোর':h<12?'সকাল':h<15?'দুপুর':h<18?'বিকাল':h<20?'সন্ধ্যা':'রাত';
 $('#gcs').innerHTML=GZ.map((z,i)=>`<button type="button" data-g="${i}" aria-pressed="${i==0}">${z[0]} ${B(z[1],z[2])}</button>`).join('');
-$('#gcs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;gs=+b.dataset.g;document.querySelectorAll('#gcs button').forEach(x=>x.setAttribute('aria-pressed',x==b));tk()});
+$('#gcs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;gs=+b.dataset.g;document.querySelectorAll('#gcs button').forEach(x=>x.setAttribute('aria-pressed',x==b));tk(true)});
 const part=(tz,d)=>{const o={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(d).forEach(p=>o[p.type]=+p.value);return o};
 const off=(tz,t)=>{const o=part(tz,t);return(Date.UTC(o.year,o.month-1,o.day,o.hour,o.minute,o.second)-t)/6e4};
 const ck=(lb,city,tz,t)=>{const o=part(tz,t),h=o.hour%12||12,m=String(o.minute).padStart(2,'0'),d=new Date(t);return`<small>${lb}</small><b>${city}</b><div class="tm"><i class="bn">${bdz(h)}:${bdz(m)}<span>${bp(o.hour)}</span></i><i class="en">${h}:${m}<span>${o.hour<12?'AM':'PM'}</span></i> ${o.hour>=6&&o.hour<18?'☀️':'🌙'}</div><div class="dt">${B(d.toLocaleDateString('bn-BD',{timeZone:tz,weekday:'long',day:'numeric',month:'long'}),d.toLocaleDateString('en-GB',{timeZone:tz,weekday:'short',day:'numeric',month:'short'}))}</div>`};
-function tk(){if($('#pg-home').hidden)return;const t=Math.floor(Date.now()/1000)*1000,z=GZ[gs],df=(off('Asia/Dhaka',t)-off(z[3],t))/60,a=Math.abs(df),hs=Number.isInteger(a)?a:a.toFixed(1);
+let clockVisible=true,clockKey='';
+function tk(force=false){if($('#pg-home').hidden||!force&&(document.hidden||!clockVisible))return;const key=Math.floor(Date.now()/60000)+'-'+gs+'-'+L();if(!force&&clockKey===key)return;clockKey=key;const t=Math.floor(Date.now()/1000)*1000,z=GZ[gs],df=(off('Asia/Dhaka',t)-off(z[3],t))/60,a=Math.abs(df),hs=Number.isInteger(a)?a:a.toFixed(1);
 $('#clk-bd').innerHTML=ck(B('বাংলাদেশ','Bangladesh'),B('ঢাকা','Dhaka'),'Asia/Dhaka',t);$('#clk-sel').innerHTML=ck(B(z[1],z[2]),B(z[4],z[5]),z[3],t);
 $('#gdf').innerHTML=df==0?B('বাংলাদেশের সঙ্গে একই সময়','Same time as Bangladesh'):B(`বাংলাদেশের সময় ${z[4]}-এর চেয়ে ${bdz(hs)} ঘণ্টা ${df>0?'এগিয়ে':'পিছিয়ে'}`,`Bangladesh is ${hs} hour${a==1?'':'s'} ${df>0?'ahead of':'behind'} ${z[5]}`)}
-setInterval(tk,1000);tk();
-const SEO={"bn": {"h": "সবার জন্য অনলাইন কুরআন ও তাজবীদ শিক্ষা | আননূর ইন্টারন্যাশনাল", "a": "অনলাইন ভর্তি আবেদন | আননূর ইন্টারন্যাশনাল অনলাইন মাদরাসা"}, "en": {"h": "Online Quran & Tajweed Learning for Everyone | An-Noor International", "a": "Admission application | An-Noor International Online Madrasa"}},SD={"bn": {"h": "দেশে কিংবা প্রবাসে—সবার জন্য কুরআন শিক্ষা। আননূর ইন্টারন্যাশনাল অনলাইন মাদরাসায় ঘরে বসে কুরআন মাজীদ, তাজবীদ ও ইসলামিক শিক্ষা। আপনার সন্তানের জন্য প্যাকেজ ও ভর্তি আবেদনের সুযোগ।", "a": "আননূর ইন্টারন্যাশনাল অনলাইন মাদরাসায় অনলাইনে সন্তানের ভর্তি আবেদন। সন্তানের তথ্য ও প্যাকেজ নির্বাচনের মাধ্যমে আবেদন করা যায়; প্রশাসন হোয়াটসঅ্যাপে যোগাযোগ করবে।"}, "en": {"h": "Quran learning for everyone, at home or abroad. An-Noor International Online Madrasa offers online Quran, Tajweed and Islamic learning for your child. Explore learning plans and admission for your child.", "a": "Apply for your child’s admission to An-Noor International Online Madrasa with student and guardian details. The administration will contact the guardian on WhatsApp."}};
+setInterval(tk,1000);tk(true);
+if('IntersectionObserver' in window){const clockObserver=new IntersectionObserver(entries=>{clockVisible=entries[0].isIntersecting;if(clockVisible)tk(true);});clockObserver.observe($('#global'));}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&clockVisible)tk(true);});
+const SEO={"bn": {"h": "অনলাইন কুরআন শিক্ষা — ৫–১৮ বছরের শিক্ষার্থীদের জন্য | আননূর", "a": "অনলাইন ভর্তি আবেদন | আননূর ইন্টারন্যাশনাল অনলাইন মাদরাসা"}, "en": {"h": "Online Quran Classes for Ages 5–18 | An-Noor International", "a": "Admission application | An-Noor International Online Madrasa"}},SD={"bn": {"h": "বাংলাদেশ ও প্রবাসের ৫–১৮ বছরের শিক্ষার্থীদের অনলাইন কায়দা, কুরআন ও তাজবীদ শিক্ষা। প্যাকেজ, ক্লাসের সময়, মাসিক ফি ও ভর্তি আবেদনের তথ্য জানুন।", "a": "আননূর ইন্টারন্যাশনাল অনলাইন মাদরাসায় অনলাইনে সন্তানের ভর্তি আবেদন। সন্তানের তথ্য ও প্যাকেজ নির্বাচনের মাধ্যমে আবেদন করা যায়; প্রশাসন হোয়াটসঅ্যাপে যোগাযোগ করবে।"}, "en": {"h": "Online Qaida, Quran and Tajweed classes for learners aged 5–18 in Bangladesh and abroad. Explore learning plans, monthly fees, schedules and admission details.", "a": "Apply for your child’s admission to An-Noor International Online Madrasa with student and guardian details. The administration will contact the guardian on WhatsApp."}};
 function seo(){const l=document.documentElement.lang,a=location.hash.startsWith('#/admission'),k=a?'a':'h',s=(q,v)=>{const e=document.querySelector(q);e&&e.setAttribute('content',v)};
 if(location.hash==='#/courses'||location.hash==='#/login'){const course=location.hash==='#/courses';const title=(course?(l==='bn'?'রেকর্ডেড কোর্স':'Recorded courses'):(l==='bn'?'শিক্ষার্থীর লগইন':'Student login'))+' | An-Noor';const desc=course?(l==='bn'?'রেকর্ডেড কোর্সের তালিকা প্রকাশের অপেক্ষায়।':'The recorded course catalogue is awaiting publication.'):(l==='bn'?'প্রতিষ্ঠানের দেওয়া স্থায়ী ক্লাস আইডিতে অনুমোদিত শিক্ষার্থীদের ক্লাসে প্রবেশ।':'Approved students access assigned classes with an institution-issued classroom ID.');document.title=title;['meta[property=\"og:title\"]','meta[name=\"twitter:title\"]'].forEach(q=>s(q,title));['meta[name=description]','meta[property=\"og:description\"]','meta[name=\"twitter:description\"]'].forEach(q=>s(q,desc));return}document.title=SEO[l][k];s('meta[name=description]',SD[l][k]);s('meta[property="og:title"]',SEO[l][k]);s('meta[property="og:description"]',SD[l][k]);s('meta[name="twitter:title"]',SEO[l][k]);s('meta[name="twitter:description"]',SD[l][k]);s('meta[property="og:locale"]',l=='bn'?'bn_BD':'en_US')}
 function route(){

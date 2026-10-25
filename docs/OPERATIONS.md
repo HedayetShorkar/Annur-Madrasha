@@ -4,7 +4,7 @@ The separate `annoor-madrasa` Supabase project (`jbmxquvgrekyapcoezmh`) stores a
 
 ## Using the pages
 
-Publish only `index.html`, `assets/`, `live/`, `payments/` and `admin/` on the website's HTTPS host. Never serve the entire source repository, backups, ZIP or private server folders. No website host was deployed in this update. The existing staging script includes `admin/`.
+Publish only `index.html`, `assets/`, `learn/`, `robots.txt`, `404.html`, the generated `sitemap.xml` when configured, `live/`, `payments/` and `admin/` on the website's HTTPS host. Never serve the entire source repository, backups, ZIP or private server folders. No website host was deployed in this update. The existing staging script includes `admin/`.
 
 The six-step form submits explicitly to `admissions/submit`. Opening files directly from disk preserves preview-only behavior and sends no form data. On HTTPS, a successful response displays a real application reference and the server's BDT fee estimate. Repeating the same unchanged request uses the same idempotency key. A network error never reports success. Refreshing clears unsaved form data; student data and admin tokens are not stored in localStorage.
 
@@ -172,3 +172,68 @@ The current Node suite passes 50 tests. Chromium layout QA passed 60 fictional v
 Before real use, deploy/restart the Node service with a database backup, configure the actual private Jitsi/LiveKit host, and test two devices on different networks. On the intended operator PC verify tab-audio selection, optional own microphone, visible student notice, a complete saved local file that plays with both voices, long-class disk behavior, stop/leave/reconnect, and school/guardian recording policy. Those real-provider/OS/device acceptance checks and production hosting remain outstanding. The future prerecorded-course upload system remains separate.
 
 Primary browser references: [screen capture](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia), [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder), [save-file picker](https://developer.mozilla.org/en-US/docs/Web/API/Window/showSaveFilePicker), [writable-file finalization](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle/createWritable), [Chrome File System Access](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access).
+
+
+## Mobile first and Bangladesh search visibility
+
+Updated 25 October 2026. The owner estimates about 80% of visitors use phones; this is a product priority, not a measured analytics result. Future releases must check the phone flows first and describe what changed, why it should help and what was actually verified. The existing ages, fees, days, six admission steps, light-default/remembered-theme behavior, branding, private access, Supabase admissions and local-computer recording are retained.
+
+### এই আপডেট ও তার প্রভাব
+
+| পরিবর্তন | প্রত্যাশিত সুবিধা | এখন পর্যন্ত যাচাই |
+| --- | --- | --- |
+| ফোনের নিচে প্যাকেজ, ভর্তি ও লাইভ ক্লাসের দ্রুত বাটন | প্রয়োজনীয় কাজ কম স্ক্রলেই পাওয়া যাবে | ভর্তি রুট, ডায়ালগ ও কিবোর্ডের অবস্থায় সঠিকভাবে আড়াল হয়; নিরাপদ নিচের জায়গা রাখা আছে |
+| বড় ক্লাসরুম দৃশ্য ও সহজে বের হওয়ার নিয়ন্ত্রণ | ছোট পর্দায় ক্লাসের জন্য বেশি জায়গা | দৃশ্য বদলাতে Jitsi iframe নতুন করে সংযোগ করে না; শিক্ষক/শিক্ষার্থী পেজ ও ছোট landscape মাপে পরীক্ষা হয়েছে |
+| কাছাকাছি সেকশনের পটভূমি আলাদা করে তৈরি | ফোনে শুরুর অপ্রয়োজনীয় প্রসেসিং ও বড় bitmap কমবে | 390×844 Chromium পরীক্ষায় আগের initial canvas export 16টি, নতুন 1টি; এটি পুরো পেজের গতি বা ব্যাটারির ফল নয় |
+| ঘড়ির অপরিবর্তিত/অদৃশ্য লেখা নতুন করে না বসানো | অপ্রয়োজনীয় DOM ও সময় হিসাবের কাজ কমবে | একই মিনিটে পুনরায় tick-এ লেখা অপরিবর্তিত; দৃশ্যমান হলে সময় হালনাগাদ হয়; clock animation থাকে |
+| HTML-এ প্যাকেজের দাম ও ক্লাসের দিন | JavaScript চালুর আগেই ব্যবহারকারী ও crawler মূল তথ্য পাবে | তিন প্যাকেজ, অনুমোদিত দাম, বিষয় ও সপ্তাহের দিন source HTML-এ আছে এবং পরীক্ষায় মিলেছে |
+| বাংলা–ইংরেজি অভিভাবক সহায়িকা | ফোনে প্রস্তুতি, স্তর, ফি ও আবেদন বুঝতে সুবিধা | Light/dark ও দুই ভাষায় ফোনের মাপ যাচাই হয়েছে; মূল পেজ থেকে crawlable link আছে |
+| পরিষ্কার title/description ও প্রতিষ্ঠানভিত্তিক structured data | সার্চ ইঞ্জিনকে আসল সেবা ও বয়সসীমা বুঝতে সাহায্য করবে | ভুয়া rating, অজানা যোগাযোগ/স্বীকৃতি বা ranking দাবি যোগ হয়নি; ফল এখনো মাপা যায়নি |
+| Domain-specific canonical, social URL ও sitemap প্রস্তুতি | লাইভ ডোমেইনে সঠিক public URL খুঁজতে সাহায্য করবে | বাস্তব ডোমেইন এখনো দেওয়া হয়নি; staging generator পরীক্ষা হয়েছে, production-এ সক্রিয় হয়নি |
+| Noindex, সঠিক 404 ও compression/cache-এর উদাহরণ | ব্যক্তিগত পোর্টালকে search landing page করা এড়ানো ও পুনরায় পেজ খোলার খরচ কমানো | Source/build-এ private meta আছে; আসল Nginx/Google ফল যাচাই বাকি |
+
+The decorative typography remains at 8% opacity. On phones, bitmap density is capped at device scale 1 instead of up to 2, with bounded placement attempts and ornaments; nearby sections render one at a time during idle periods. A completed section is reused at the same dimensions. Width changes can refresh visible backgrounds; keyboard-only height changes do not repaint the entire page. Hidden/offscreen decorations pause relevant CSS animation. Content, forms and the six-step controller remain independent of the idle decoration queue.
+
+### Activate on the actual domain
+
+The actual public origin, official contact details and first admission-admin email are still owner inputs. Do not substitute the GitHub repository URL, Supabase API host, internal preview or the separate examination-board institution/domain. No external production website, paid service, Search Console property or analytics account was created in this update.
+
+From the repository root, with an empty staging destination outside the source checkout:
+
+```sh
+node live-class/scripts/stage-public.mjs /srv/annoor/public-next
+node scripts/prepare-seo.mjs /srv/annoor/public-next https://YOUR_REAL_DOMAIN
+```
+
+Replace `YOUR_REAL_DOMAIN` with the institution's real domain. The generator requires an HTTPS origin without a path/query/fragment/credentials; it refuses placeholder/invalid hosts, source-tree output and symlink escapes. It writes only public staging files. It adds root-home and `/learn/` canonical/social URLs, resolves structured-data identities and logo to that origin, creates a sitemap with exactly those two public pages, and adds its absolute URL to robots.txt. There are no guessed URLs or fake last-modified dates in the source package. Re-running with the same domain is deterministic. Run it again whenever preparing the real deployment, then deploy that staged output.
+
+`learn/index.html` is a genuine reader guide, not a collection of location/keyword doorway pages. The recorded-course catalogue remains unpublished. Language switching uses the same URL; separate language URLs and hreflang are not fabricated. The source metadata has no AggregateRating/review schema, unsupported credentials, physical address or instructor qualifications.
+
+The updated Nginx example includes gzip, revalidation of unhashed assets, long caching for fingerprinted portal bundles, private-portal X-Robots-Tag and a real-status 404 page. Canonical URL metadata is written by the staging generator. Run `nginx -t` on the actual host before reloading; this environment has not validated a running Nginx/TLS deployment. Noindex and robots rules are not authentication; server authorization remains essential. Do not block private HTML from crawling in robots while expecting a crawler to read its noindex meta. Publish only the staged files, never private source/backups/databases.
+
+After the real domain is reachable on HTTPS: verify ownership in Search Console, submit its sitemap, inspect the homepage and guide URLs, check canonical selection and inspect real mobile usability/Core Web Vitals. These ownership and live-domain steps have not been completed. No Google verification code or account credential was guessed or requested in chat.
+
+### Grow the institution with evidence
+
+| Priority | Work and intended effect | Owner input / measurement |
+| --- | --- | --- |
+| Live foundation | Stable public domain, real Jitsi/Node service, real phones and reliable admission follow-up | Domain/hosting choice and first admin identity; successful student/guardian journeys on actual Android/iPhone and different networks |
+| Verified trust | Publish confirmed teacher bios/qualifications, authorized samples, official contact details and clear practical policies | Institution-approved facts and materials; track real parent questions and resolved concerns |
+| Helpful Bangla content | Build useful parent/learner guidance from actual teaching experience, with a clear purpose for each page | Teacher-reviewed topics; Search Console Bangladesh queries, impressions, clicks and useful page discovery |
+| Teaching outcomes | Use lesson/homework/progress records consistently and review attendance/follow-up | Real class data and consent before any public student story; compare retention and report completion |
+| Search and application funnel | Check which useful pages bring appropriate applications and where phone users struggle | Compare Search Console data and server-confirmed application totals over comparable periods; exclude staff/test traffic |
+| Ongoing quality | Maintain mobile checks, fresh accurate content, backups and service reliability | Compare phone errors, successful joins, completed applications and support response times after each substantive release |
+
+Initial search topics can naturally cover online Quran learning, Qaida/Tajweed, suitable age, class preparation and fees in Bangladesh; do not create thin duplicate pages for every city or guarantee being the "best". Staff expertise, real teaching quality, prompt parent communication and consistent useful content are business work as well as website work. No outreach, social posting, paid advertising, purchased links or fake testimonials were performed.
+
+Measurement goals for the live service are LCP around 2.5s or better, INP under 200ms and CLS under 0.1 for actual mobile users, using field data when enough exists. These are targets from Google guidance, not scores achieved here. Search position and admission growth cannot be established from a code update or narrow-browser test. New analytics/marketing trackers are not enabled; no form data or student IDs are sent to an analytics service. A future aggregate funnel should count server-confirmed submissions/joins separately from button clicks and exclude student contact details.
+
+### Checks and limits
+
+- `NODE_PATH=/path/to/jsdom/node_modules node tests/mobile-seo.cjs`: static plan parity, truthful metadata, staged-domain generation, invalid-domain rejection, idempotency, private-file exclusion/symlink rejection, one-section idle decoration, keyboard resize avoidance, minute-cached/offscreen clock and mobile bar/dialog/keyboard behavior.
+- The existing admission/date/time/schedule/review/submission, class access/learning/Jitsi, receipt and portable-entry checks passed. The compiled Jitsi test also verifies expand/restore keeps the same meeting instance. Both portal builds passed; existing bundle-size advisories remain.
+- Native Chromium checked 208 public layouts (8 page types × 13 widths × 2 heights), 182 verified staff/learning/classroom/receipt/office snapshots (13 views × 7 widths × 2 heights), 40 additional active admission-step phone layouts and 32 bilingual/light-dark guide layouts: 462 checks, with no document/control horizontal overflow. Phone priorities included 320, 360, 390 and 412px. Actual six-step input/edit/rules/review was exercised with fictional data, without submitting to a real service. Staff snapshots are inert fictional data and are not packaged/published as website content.
+- Native canvas-count comparison used the preserved previous homepage and the current one at 390×844. It measures initial decorative export calls only; it is not a Core Web Vitals, mobile CPU, network or battery benchmark.
+- This is browser/DOM QA, not physical Android/iOS, virtual-keyboard, 4G, long-session media capacity or production Google validation. Local class recording still needs a supported computer. No phone-recording support, ranking gain, uptime guarantee or enrollment increase is claimed.
+
+References: [Google mobile-first indexing](https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing), [SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide), [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals), [helpful content](https://developers.google.com/search/docs/fundamentals/creating-helpful-content).

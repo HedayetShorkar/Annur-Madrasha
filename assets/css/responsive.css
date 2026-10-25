@@ -128,3 +128,23 @@ html[data-theme=dark] #pg-adm .admission-steps button:disabled>.wizard-step-inde
  dialog[open]{max-block-size:calc(100dvh - 16px)}
 }
 @media(hover:none){.btn:hover,.pk2:hover,.tcd:hover,.card:hover{transform:none}}
+
+/* Phone-first navigation respects notches, keyboards and the form's own footer. */
+.mobile-quick{display:none}.mobile-quick[hidden]{display:none!important}
+.no-script-note{padding-block:18px;background:#fff8df;color:#59491b;line-height:1.8}
+html[data-page-paused] *,html[data-page-paused] *::before,html[data-page-paused] *::after{animation-play-state:paused!important}
+.hero.outside-viewport .plate,.hero.outside-viewport .plate::before,.hero.outside-viewport .plate::after,
+#global.outside-viewport .orb,#global.outside-viewport .gh small::before,#global.outside-viewport .tm{animation-play-state:paused!important}
+@media(max-width:600px){
+ body.has-mobile-quick{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+ .mobile-quick{position:fixed;inset:auto 0 0;top:auto;z-index:24;display:flex;align-items:stretch;gap:6px;padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -6px 24px #082d1e12;backdrop-filter:none}
+ .mobile-quick a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:52px;padding:8px 5px;border-radius:12px;color:#075d43;font-size:13px;font-weight:700;text-decoration:none;line-height:1.5}
+ .mobile-quick .mobile-apply{background:#075d43;color:#fff}.mobile-quick a[aria-current]{background:#e1f5e9;color:#074d35}
+ .mobile-quick a>span{font-size:20px;line-height:1}.mobile-quick i{font-style:normal}
+ html[data-theme=dark] .mobile-quick a{color:#d5f5e2}html[data-theme=dark] .mobile-quick .mobile-apply{background:#b99a38;color:#122a1e}
+ html[data-theme=dark] .mobile-quick a[aria-current]{background:#183d2c;color:#e1faeb}
+ #fm input:not([type=checkbox]):not([type=radio]),#fm select,#fm textarea{font-size:16px}
+ .keyboard-open #fm .wizard-actions{position:static}
+ .keyboard-open #pg-adm .admission-required{display:none}
+ .keyboard-open #pg-adm .admission-guide{padding-block:4px}
+}

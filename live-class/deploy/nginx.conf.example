@@ -1,6 +1,23 @@
 # Inside an HTTPS server block with the real domain and TLS certificate configured.
 root /srv/annoor/public;
 index index.html;
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_comp_level 5;
+gzip_types text/plain text/css application/javascript application/json application/ld+json application/xml image/svg+xml;
+error_page 404 /404.html;
+location = /404.html { internal; }
+location ~ ^/(live|payments)/assets/[^/]+\.(js|css)$ {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+    try_files $uri =404;
+}
+location /assets/ {
+    add_header Cache-Control "public, max-age=0, must-revalidate";
+    try_files $uri =404;
+}
+location = /robots.txt { try_files $uri =404; }
+location = /sitemap.xml { try_files $uri =404; }
 location /api/live/ {
     proxy_pass http://127.0.0.1:4100;
     proxy_set_header Host $host;
@@ -11,7 +28,9 @@ location /api/live/ {
     client_max_body_size 32k;
 }
 location = /live { return 308 /live/; }
-location /live/ { try_files $uri $uri/ /live/index.html; }
-location / { try_files $uri $uri/ =404; }
+location /live/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ /live/index.html; }
+location /payments/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
+location /admin/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
+location / { add_header Cache-Control "no-cache"; try_files $uri $uri/ =404; }
 # Only stage the public release; never serve the full project tree.
 location ~ /\. { deny all; }

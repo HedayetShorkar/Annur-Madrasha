@@ -8,6 +8,12 @@ The six-step form now submits to the deployed admissions endpoint and stores rea
 
 Historical root update reports have been consolidated into [one history document](docs/HISTORY.md), keeping the website's design, source, tests and recovery archives intact.
 
+## Mobile first and search visibility
+
+Mobile is the default priority: the owner expects about 80% of visits from phones. This release adds thumb-friendly quick actions, keyboard/dialog-aware navigation, an expanded classroom view and a crawlable bilingual [parent guide](learn/index.html). Plan prices and class days are present in the original HTML, before JavaScript runs. Decorative backgrounds render nearby sections during idle time; the clock avoids rebuilding unchanged/offscreen text.
+
+The release includes truthful search/social metadata, private-portal noindex tags, `robots.txt`, a 404 page, and a domain-specific canonical/sitemap generator. The actual public domain and Search Console are not configured yet. Read [changes, expected effects, deployment and growth priorities](docs/OPERATIONS.md#mobile-first-and-bangladesh-search-visibility). No rank, real-phone speed score or increased enrollment is claimed.
+
 ## Responsive screens
 
 The public pages, compact navigation, six-step form, classroom portal and receipt desk adapt to phones, tablets and wide monitors. Mobile forms keep their progress visible, controls are easier to tap, and long names or IDs wrap within their cards. See [RESPONSIVE_UPDATE.md](docs/HISTORY.md) for the changes, browser checks and reusable QA tools.
@@ -53,7 +59,8 @@ The classroom now supports Jitsi Meet (self-hosted JWT or JaaS) inside the exist
 
 ## Package layout
 
-- `index.html`, `assets/`: public website and original branding.
+- `index.html`, `assets/`, `learn/`: public website, original branding and parent guide.
+- `robots.txt`, `404.html`, `scripts/prepare-seo.mjs`: crawl/error handling and domain-specific SEO preparation.
 - `payments/`, `live/`: built public pages; use their explicit `index.html` files.
 - `payment-module/`: editable receipt/gateway UI and future Supabase backend.
 - `live-class/`: private Node API, receipt registry, live classroom source, tests and deployment examples.
@@ -61,4 +68,4 @@ The classroom now supports Jitsi Meet (self-hosted JWT or JaaS) inside the exist
 - `tests/`: public form, portability and compiled UI regressions.
 - `original-backup/`, `checkpoints/`: preserved recovery material; never publish.
 
-Publish only `index.html`, `assets/`, `live/`, `payments/` and `admin/`. `live-class/scripts/stage-public.mjs` copies only those into an empty directory outside the source tree. Keep private server source (`live-class/` **and its adjacent `shared/`**), SQLite data/backups, environment values and source archives outside the public web root. The Node API is loopback-only behind the same-origin HTTPS proxy shown in its deployment example.
+Publish only `index.html`, `assets/`, `learn/`, `robots.txt`, `404.html`, the generated `sitemap.xml` when configured, `live/`, `payments/` and `admin/`. `live-class/scripts/stage-public.mjs` copies the approved public files into an empty directory outside the source tree. Keep private server source (`live-class/` **and its adjacent `shared/`**), SQLite data/backups, environment values and source archives outside the public web root. The Node API is loopback-only behind the same-origin HTTPS proxy shown in its deployment example.

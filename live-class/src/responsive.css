@@ -77,3 +77,14 @@ textarea:focus-visible{outline:3px solid #d4af37;outline-offset:3px}
 .recording-result{margin-top:20px;border-top:1px solid #b8d7c4;padding-top:18px;overflow-wrap:anywhere}.recording-result p{margin-block:5px}.recording-result .actions{margin-top:10px}
 @media(max-width:800px){.learning-layout{grid-template-columns:minmax(0,1fr)}.lesson-picker{position:static}.lesson-options{max-height:220px;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.learning-fields,.student-progress dl,.lesson-options{grid-template-columns:minmax(0,1fr)}.recording-heading{gap:10px}.recording-heading h2{font-size:21px}.learning-content .primary{width:100%}.class-filters label{flex-basis:100%}.class-filters span{padding:0}}
+
+/* A CSS-expanded classroom works without depending on mobile fullscreen APIs. */
+.classroom{display:flex;flex-direction:column;scroll-margin-top:12px}
+.classroom>.jitsi-stage,.classroom>.lk-room-container{flex:1;min-height:0;height:auto}
+.classroom-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#12382b;flex:none}
+.classroom-toolbar button{min-height:44px;font-size:13px;padding:9px 12px;background:#f3faf5;color:#12442c;border-color:#86b59a}
+.classroom-recording-note{flex:none;margin:0;background:#582f25;color:#ffead7;padding:8px 16px;font-size:13px;line-height:1.6}
+html.classroom-expanded,html.classroom-expanded body{overflow:hidden}
+.classroom.classroom-large{position:fixed;inset:0;z-index:100;height:100dvh;min-height:0;border-radius:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);background:#101717}
+@media(max-width:500px){.classroom-toolbar{padding:8px;gap:8px}.classroom-toolbar button{flex:1;min-width:0;font-size:12px}.classroom-recording-note{font-size:12px;padding:8px 12px}}
+@media(max-height:500px){.classroom.classroom-large{height:100dvh;min-height:0}}

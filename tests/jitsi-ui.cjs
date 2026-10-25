@@ -43,6 +43,8 @@ async function compiled(){
   }else{
    assert.equal([...d.querySelectorAll('button')].some(b=>b.textContent==='ভিডিও প্রিভিউ'),false);
    [...d.querySelectorAll('button')].find(b=>b.textContent==='ক্লাসে যোগ দিন').click();await until(()=>fake.instances.length===1);assert.equal(fake.instances.length,1);assert.equal(fake.instances[0].options.jwt,info.token);assert.equal(d.querySelectorAll('.jitsi-embed iframe').length,1);
+   [...d.querySelectorAll('button')].find(b=>b.textContent==='বড় ক্লাসরুম দেখুন').click();await delay(20);assert.ok(d.documentElement.classList.contains('classroom-expanded'));assert.ok(d.querySelector('.classroom-large'));assert.equal(fake.instances.length,1);assert.equal(fake.instances[0].disposed,0);
+   [...d.querySelectorAll('button')].find(b=>b.textContent==='স্বাভাবিক দৃশ্যে ফিরুন').click();await delay(20);assert.equal(d.documentElement.classList.contains('classroom-expanded'),false);assert.equal(fake.instances.length,1);
   }
   rows=[];await poll();await delay(30);assert.equal(fake.instances[0].disposed,1);assert.equal(d.querySelectorAll('.jitsi-embed iframe').length,0);assert.equal(w.localStorage.length,0);assert.ok(!requests.some(x=>x.includes('heartbeat')));assert.deepEqual(jsErrors,[]);dom.window.close();
  }
