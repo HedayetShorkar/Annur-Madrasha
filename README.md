@@ -34,6 +34,12 @@ The online payment tab remains a coming-soon option. No receiving number or acti
 
 Six validated steps with Previous/Next navigation, sticky progress and final review. See [ADMISSION_WIZARD.md](docs/HISTORY.md). Intake now has its deployed endpoint. Parent-review publishing remains unconnected. Existing approved fees/rules, ages 5–18, Hifz option, package weekdays and 12/24-hour time controls are retained.
 
+## Lessons, progress and local recording
+
+The private classroom now includes searchable class/account lists, per-class lesson notes and homework, teacher-entered attendance and individual Qaida/Quran/Hifz progress. Students see only their own evaluation. Administrators can create the next session with the same active, allowed roster while retaining the previous lesson history.
+
+Teachers and administrators can explicitly start/stop local screen-and-audio recording on the computer they are using. Choose the classroom browser tab and share its audio. A supported desktop browser can stream to a user-selected local file; a bounded download mode is also available. Recordings are never uploaded or automatically published as courses. See [the workflow and limits](docs/OPERATIONS.md#learning-records-and-local-recording).
+
 ## Live classes
 
 The classroom now supports Jitsi Meet (self-hosted JWT or JaaS) inside the existing website. Student IDs and assigned-class access remain private; administrators can open visible silent previews. See [Jitsi connection instructions](docs/OPERATIONS.md#jitsi-live-class-connection). Actual media service configuration and device acceptance are still required. Existing LiveKit deployments remain selectable.

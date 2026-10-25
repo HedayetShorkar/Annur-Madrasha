@@ -1,5 +1,6 @@
 import {allocateLoginId} from './identities.js';
 import {migrateReceipts} from './receipts.js';
+import {migrateLearning} from './learning.js';
 import {DatabaseSync} from 'node:sqlite';import {mkdirSync} from 'node:fs';import {dirname} from 'node:path';
 export function openDb(path){if(path!==':memory:')mkdirSync(dirname(path),{recursive:true});const db=new DatabaseSync(path);db.exec(`PRAGMA foreign_keys=ON;PRAGMA journal_mode=WAL;PRAGMA busy_timeout=5000;
 CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('admin','teacher','student')),active INTEGER NOT NULL DEFAULT 1);
@@ -21,6 +22,6 @@ try{
   db.prepare('UPDATE users SET login_id=?,contact_email=COALESCE(contact_email,?) WHERE id=?').run(allocateLoginId(db),u.email.endsWith('@accounts.invalid')?null:u.email,u.id);
  }
  db.exec("CREATE TABLE IF NOT EXISTS schema_versions(version INTEGER PRIMARY KEY,applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);INSERT OR IGNORE INTO schema_versions(version) VALUES(2);");
- migrateReceipts(db);db.exec('COMMIT');
+ migrateReceipts(db);migrateLearning(db);db.exec('COMMIT');
 }catch(error){db.exec('ROLLBACK');db.close();throw error;}
 return db;}

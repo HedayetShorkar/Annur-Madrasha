@@ -647,3 +647,10 @@ Confirmed six bilingual FAQ answer pairs and no remaining FAQ placeholder. JavaS
 ## Jitsi compatibility — 25 October 2026
 
 Added self-hosted/JaaS signed Jitsi join adapters and an embedded classroom with visible silent supervision. Preserved existing student IDs, private role controls, receipt/admission data and LiveKit selection. Jitsi dashboard metrics and verified attendance are marked unavailable; standard iframe controls do not imply server-level moderation. Current setup and verification boundaries are in OPERATIONS.md. No real media service was activated.
+
+
+## 2026-10-25 — Lessons, individual progress and manual local recording
+
+Preserved the existing website/admissions/fees/receipts and private Jitsi/LiveKit classroom. Added searchable class/account lists, shared lesson notes/homework, role-scoped teacher-entered attendance and Qaida/Quran/Hifz reports, versioned atomic saves, audit entries and admin next-session creation with allowed active roster copying. Students see their own evaluation only. Added explicit staff-only browser recording with tab audio, an optional clearly labelled microphone mix, selected local-file output or bounded downloadable parts, a visible expiring recording notice, timer, safe stop/cancellation and honest file-error states. Files remain on the recording operator's computer; no automatic recording, uploads or course publication.
+
+Current operations and activation limitations are in `docs/OPERATIONS.md`. The expanded Node suite passed 50 tests; compiled workflows, earlier access/Jitsi/receipt/portable checks, 60 responsive fictional layouts and synthetic native-browser encoding/playback were verified. Actual media hosting, real two-device calls, OS file-picker/device acceptance and future recorded-course uploads remain separate.

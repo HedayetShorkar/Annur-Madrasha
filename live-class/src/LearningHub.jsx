@@ -1,0 +1,34 @@
+import React,{useEffect,useRef,useState} from 'react';
+const attendance={unmarked:'এখনো লেখা হয়নি',present:'উপস্থিত',absent:'অনুপস্থিত',excused:'ছুটি'},stages={qaida:'কায়দা',quran:'কুরআন',hifz:'হিফজ'},homework={not_started:'এখনো শুরু হয়নি',practicing:'অনুশীলন চলছে',completed:'সম্পন্ন'};
+const date=value=>value?new Date(value).toLocaleString('bn-BD',{dateStyle:'medium',timeStyle:'short'}):'—';
+export default function LearningHub({classes,user,api}){
+ const [selected,setSelected]=useState(''),[data,setData]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[query,setQuery]=useState(''),[reload,setReload]=useState(0);
+ const serial=useRef(0),current=useRef('');current.current=selected;
+ const rows=[...classes].sort((a,b)=>Date.parse(b.scheduled)-Date.parse(a.scheduled));
+ const available=rows.filter(c=>(c.title+' '+c.teacher).toLowerCase().includes(query.toLowerCase()));
+ useEffect(()=>{if(!classes.some(c=>c.id===selected))setSelected(rows[0]?.id||'');},[classes,selected]);
+ useEffect(()=>{
+  const request=++serial.current;setData(null);setError('');setNotice('');
+  if(!selected)return;
+  api('/classes/'+selected+'/learning').then(result=>{if(serial.current===request)setData(result);}).catch(()=>{if(serial.current===request)setError('পড়াশোনার তথ্য পাওয়া যায়নি। আবার চেষ্টা করুন।');});
+  return()=>{serial.current++;};
+ },[selected,reload]);
+ async function save(path,body){
+  const chosen=selected;setBusy(true);setError('');setNotice('');
+  try{await api('/classes/'+chosen+path,body);if(current.current===chosen){const updated=await api('/classes/'+chosen+'/learning');if(current.current===chosen){setData(updated);setNotice('তথ্য সংরক্ষণ হয়েছে।');}}}
+  catch(cause){if(current.current===chosen)setError(cause.message==='LEARNING_CHANGED'?'অন্য কেউ এই তথ্য হালনাগাদ করেছেন। আপনার লেখা এখানে আছে; তথ্য পুনরায় দেখে নেওয়ার পর আবার সংরক্ষণ করতে হবে।':'তথ্য সংরক্ষণ হয়নি। অনুমতি ও সংযোগ যাচাই করুন।');}
+  finally{setBusy(false);}
+ }
+ const chosen=classes.find(c=>c.id===selected);
+ return <section className="learning-hub" aria-label="পড়াশোনা ও অগ্রগতি"><div className="heading"><div><p className="eyebrow">LESSONS & PROGRESS</p><h2>{user.role==='student'?'আমার পড়াশোনার খাতা':'পাঠদান ও শিক্ষার্থীর অগ্রগতি'}</h2><p>ক্লাসের বিষয়, বাড়ির কাজ ও শিক্ষকের মূল্যায়ন এক জায়গায়।</p></div><button disabled={busy} onClick={()=>setReload(x=>x+1)}>তথ্য আবার দেখুন</button></div>
+  <div className="learning-layout"><aside className="panel lesson-picker"><label>ক্লাস খুঁজুন<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ক্লাস বা শিক্ষকের নাম"/></label><div className="lesson-options">{available.map(c=><button type="button" key={c.id} className={selected===c.id?'lesson-selected':''} onClick={()=>setSelected(c.id)}><strong>{c.title}</strong><small>{date(c.scheduled)} · {c.teacher}</small></button>)}</div>{!available.length&&<p>কোনো ক্লাস পাওয়া যায়নি।</p>}</aside>
+  <div className="learning-content">{error&&<p className="error" role="alert">{error}</p>}{notice&&<p className="learning-success" role="status">{notice}</p>}{selected&&!data&&!error&&<p role="status">পাঠের তথ্য আসছে…</p>}
+   {data&&chosen&&<><section className="panel lesson-overview"><span className="badge">{chosen.status==='ended'?'বিগত ক্লাস':'নির্ধারিত পাঠ'}</span><h2>{chosen.title}</h2><p>{chosen.teacher} · {date(chosen.scheduled)}</p>
+    {data.canEdit?<form key={selected+'-'+data.lesson.version} onSubmit={e=>{e.preventDefault();const values=Object.fromEntries(new FormData(e.currentTarget));void save('/lesson',{...values,version:data.lesson.version});}}><label>পাঠের বিষয়<input name="topic" maxLength="160" defaultValue={data.lesson.topic} placeholder="যেমন: সূরা ফাতিহা — মাখরাজ অনুশীলন"/></label><label>আজকের পাঠের নোট<textarea name="summary" maxLength="4000" rows="4" defaultValue={data.lesson.summary}/></label><label>বাড়ির কাজ<textarea name="homework" maxLength="3000" rows="3" defaultValue={data.lesson.homework}/></label><button className="primary" disabled={busy}>পাঠ ও বাড়ির কাজ সংরক্ষণ</button></form>:<div className="lesson-text"><h3>{data.lesson.topic||'পাঠের বিষয় এখনো দেওয়া হয়নি'}</h3><p>{data.lesson.summary||'শিক্ষক পাঠের নোট দিলে এখানে দেখা যাবে।'}</p><h3>বাড়ির কাজ</h3><p>{data.lesson.homework||'এই ক্লাসের বাড়ির কাজ এখনো দেওয়া হয়নি।'}</p></div>}
+   </section><section className="panel"><div className="heading"><div><h2>{data.canEdit?'শিক্ষার্থীর পাঠের রেকর্ড':'আমার অগ্রগতি'}</h2><p>এই হাজিরা শিক্ষক বা প্রশাসক লিখেছেন; এটি ভিডিও সার্ভারের যাচাইকৃত হাজিরা নয়।</p></div></div>
+    {!data.reports.length&&<p>এই ক্লাসে শিক্ষার্থী যুক্ত হলে পাঠের রেকর্ড রাখা যাবে।</p>}
+    {data.reports.map(row=>data.canEdit?<details className="learner-entry" key={row.id} open={data.reports.length===1||undefined}><summary><strong>{row.name}</strong><span>{row.blocked?'প্রবেশ বন্ধ · ':''}{attendance[row.attendance||'unmarked']} · {row.version?'রেকর্ড আছে':'অপেক্ষমাণ'}</span></summary><form key={selected+'-'+row.id+'-'+row.version} onSubmit={e=>{e.preventDefault();void save('/reports/'+row.id,{...Object.fromEntries(new FormData(e.currentTarget)),version:row.version});}}><div className="learning-fields"><label>শিক্ষকের লেখা হাজিরা<select name="attendance" defaultValue={row.attendance||'unmarked'}>{Object.entries(attendance).map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label><label>পড়ার স্তর<select name="stage" defaultValue={row.stage||'qaida'}>{Object.entries(stages).map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label></div><label>যতটুকু পড়া হয়েছে<input name="covered" maxLength="1000" defaultValue={row.covered||''} placeholder="পৃষ্ঠা / সূরা / পারা ও প্রয়োজনীয় বিবরণ"/></label><label>বাড়ির কাজের অবস্থা<select name="homeworkStatus" defaultValue={row.homework_status||'not_started'}>{Object.entries(homework).map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label><label>মূল্যায়ন ও পরবর্তী করণীয়<textarea name="feedback" rows="3" maxLength="2000" defaultValue={row.feedback||''}/></label><button className="primary" disabled={busy}>{row.name} · রেকর্ড সংরক্ষণ</button><small>{row.recorded_by_name?row.recorded_by_name+' · '+date(row.updated_at):'রেকর্ডটি সংশ্লিষ্ট শিক্ষার্থীর অ্যাকাউন্টে দেখা যাবে।'}</small></form></details>:<article className="student-progress" key={row.id}>{row.version?<><dl><div><dt>হাজিরা</dt><dd>{attendance[row.attendance]}</dd></div><div><dt>পড়ার স্তর</dt><dd>{stages[row.stage]}</dd></div><div><dt>বাড়ির কাজ</dt><dd>{homework[row.homework_status]}</dd></div></dl><h3>যতটুকু পড়া হয়েছে</h3><p>{row.covered||'—'}</p><h3>শিক্ষকের মূল্যায়ন</h3><p>{row.feedback||'—'}</p><small>{row.recorded_by_name} · {date(row.updated_at)}</small></>:<p>শিক্ষক মূল্যায়ন দিলে আপনার পাঠের অগ্রগতি এখানে দেখা যাবে।</p>}</article>)}
+   </section></>}
+  </div></div>
+ </section>;
+}

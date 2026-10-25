@@ -1,4 +1,4 @@
-# Admissions — current operations
+# An-Noor — current operations
 
 The separate `annoor-madrasa` Supabase project (`jbmxquvgrekyapcoezmh`) stores admissions. The examination-board project is untouched.
 
@@ -96,7 +96,7 @@ JITSI_KEY_ID=vpaas-magic-cookie-YOUR_APP_ID/YOUR_KEY_ID
 JITSI_PRIVATE_KEY_FILE=/etc/annoor/jaas-private.pem
 ```
 
-Use the real AppID, full API key ID and an RSA private key of at least 2048 bits from your account setup. Register its public key with JaaS. The signer uses RS256 with exact room matching and `context.user.moderator`; recording/transcription/livestream features are not enabled by this adapter. The private key stays on the Node server. A server-secret `JITSI_PRIVATE_KEY` environment value is also supported for a secret manager, but the file option is preferred. No JaaS account was created or subscription enabled here.
+Use the real AppID, full API key ID and an RSA private key of at least 2048 bits from your account setup. Register its public key with JaaS. The signer uses RS256 with exact room matching and `context.user.moderator`; provider/cloud recording, transcription and livestream features are not enabled by this adapter. Local browser recording below is independent of those provider claims. The private key stays on the Node server. A server-secret `JITSI_PRIVATE_KEY` environment value is also supported for a secret manager, but the file option is preferred. No JaaS account was created or subscription enabled here.
 
 ### What the website does
 
@@ -112,8 +112,63 @@ The Jitsi script is served by your configured trusted media host and executes in
 
 ### Verification and activation
 
-Run `npm test` in `live-class/`, rebuild with `npm run build`, and run the root compiled-UI tests. `tests/jitsi-ui.cjs` covers SDK loading/failure/retry, token/room options, cancellation/disposal, initial device states, silent supervision, JaaS paths and access-revocation polling using a fictional SDK. These do not test real WebRTC, media-server configuration, remote moderator enforcement or capacity. The combined Node suite passed 37 tests. Chromium layout checks passed 40 fictional login/student/teacher/admin views at 320, 390, 768, 1280 and 1920px widths and 844/375px heights; the embedded media was inert test content. An expanded 390px admin roster also had no horizontal overflow. Existing compiled access, receipt and portable-entry checks passed.
+Run `npm test` in `live-class/`, rebuild with `npm run build`, and run the root compiled-UI tests. `tests/jitsi-ui.cjs` covers SDK loading/failure/retry, token/room options, cancellation/disposal, initial device states, silent supervision, JaaS paths and access-revocation polling using a fictional SDK. These do not test real WebRTC, media-server configuration, remote moderator enforcement or capacity. The original Jitsi delivery passed 37 Node tests; the expanded current suite is described below. Chromium layout checks passed 40 fictional login/student/teacher/admin views at 320, 390, 768, 1280 and 1920px widths and 844/375px heights; the embedded media was inert test content. An expanded 390px admin roster also had no horizontal overflow. Existing compiled access, receipt and portable-entry checks passed.
 
 Before taking real classes, configure your actual media service and test on two devices/different networks: missing/forged/wrong-room/expired tokens rejected, student stays non-moderator even when first, approved student only enters assigned classes, mic/camera/screen share and reconnect work, supervisor is visible, native mute/kick works, lock/end behavior is understood, and more than one simultaneous class works. No real Jitsi media call or production deployment was performed in this update.
 
 Primary references: [Jitsi IFrame API](https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe/), [commands](https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe-commands/), [Docker token auth](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker/), [upstream token affiliations](https://github.com/jitsi/jitsi-meet/blob/master/resources/prosody-plugins/mod_token_affiliation.lua), [Docker Jicofo configuration](https://github.com/jitsi/docker-jitsi-meet/blob/master/jicofo/rootfs/defaults/jicofo.conf), [JaaS JWT](https://developer.8x8.com/jaas/docs/api-keys-jwt/), [JaaS IFrame](https://developer.8x8.com/jaas/docs/iframe-api-integration/).
+
+
+## Learning records and local recording
+
+Updated 25 October 2026. This extends the existing Node classroom service and keeps the homepage, admission form, Supabase office, original student IDs, receipt ledger and selected Jitsi/LiveKit adapter. No additional dependency, paid provider, hosting deployment or cloud recording service is enabled.
+
+### Classroom management
+
+- Search classes by title/teacher and filter scheduled, entry-open or ended sessions. Administrators can search the existing account list by name, permanent ID or email.
+- **পড়াশোনা ও অগ্রগতি** contains class topics, shared lesson notes, homework and individual reading reports. Only the assigned teacher/admin edits. Students read shared lesson content plus only their own report; roster peers and their feedback are never returned to a student's report request.
+- Reports include staff-entered present/absent/excused/unmarked attendance, Qaida/Quran/Hifz stage, covered material, homework state and feedback. This is `STAFF_RECORDED`, not provider-verified presence, completion proof or a calculated learning score. It does not write to the existing sampled `attendance` table.
+- Writes validate bounded fields, reject unexpected keys, compare an expected version inside `BEGIN IMMEDIATE` and audit IDs/versions without copying private feedback into audit details. A stale write returns `409 LEARNING_CHANGED`; refresh and compare before saving again. Inputs remain in place after a conflict until the user deliberately refreshes.
+- Admin **same batch / next class** creates a scheduled session with a fresh private room and copies only active, unblocked students. It leaves prior lessons, reports and sampled attendance in their original session. It is not a recurring scheduler or an admission-approval-to-enrollment integration.
+- Existing students can use their credentials with their guardian to read their own reports; a separate guardian login/delivery system is not implemented. Supabase admissions and classroom/receipt authentication remain separate.
+
+### Manual local recording
+
+1. Use an updated desktop Chrome or Edge browser on the real HTTPS classroom domain. Feature detection shows an explanatory fallback when screen capture, recording or audio mixing is unsupported. Mobile/tablet/browser capabilities vary; this is not a universal mobile recording promise.
+2. Join the relevant class as its assigned teacher or admin. Public pages, students and silent-preview cards have no recorder control. The server independently rejects a student's or unrelated teacher's recording-notice requests.
+3. Prefer **ফাইলের জায়গা বাছুন** for a long class. It requests a save-file handle in one user gesture. **রেকর্ডিং শুরু** is a separate gesture because browsers also require user activation for screen capture. Choosing a place does not start capture. Use a new file name; selecting an existing file invokes the browser's overwrite flow.
+4. In the browser picker choose the classroom tab and enable **Share tab audio**. Capture audio must be present; silent video-only input is refused. The own-voice checkbox additionally requests microphone audio and mixes it with the selected tab through Web Audio. It is clearly independent of the Jitsi/LiveKit mute switch, so the operator's voice can be recorded while their conference microphone is muted. Uncheck it when that is not wanted. A requested microphone failure stops setup rather than omitting it silently.
+5. After device permission and a successful staff-authorized notice, MediaRecorder starts with a supported WebM/VP8+Opus format, falling back to WebM/MP4 only when supported. Nothing starts on page load, login, joining or reconnecting. The visible tab layout is recorded, not individual remote camera tracks or all concurrent classrooms at once. Prefer the class view while recording; the compact sticky bar keeps stop/timer controls accessible.
+6. Direct-file mode writes ordered chunks to the chosen local handle and claims success only after the writer closes. Browser writes typically commit from a temporary file only at close. Stop and wait for completion. A reload, crash, power loss or disk failure can lose an unfinished recording; the app warns on navigation while active. It cannot guarantee crash recovery. Write/close failure is never reported as success. Slow disk queues stop capture rather than growing without a bound.
+7. Download mode retains a bounded recording in memory and stops at 20 minutes or about 256 MiB, including a possible final chunk. Use the download link before closing, refreshing or starting another recording. It never stores chunks, credentials, files or paths in localStorage/IndexedDB. Starting another part or dismissing an undownloaded result requires an explicit acknowledgement. Logout waits for capture to stop and asks for the pending download first.
+8. Stop, browser **Stop sharing**, classroom exit/end/access loss, capture-track ending, recording error or recording-notice failure stops capture and closes acquired tracks/audio contexts. API calls time out after 15 seconds. Browser permission dialogs themselves cannot be dismissed programmatically; cancellation prevents a late permission result from starting a recording. Page-hide cleanup is best effort; the normal Stop button is required for reliable finalization.
+
+The file is saved on **the computer that starts recording**. A teacher's local recording is not automatically copied onto the owner's PC. For an owner-PC copy, join and record on that PC. There is no remote desktop write, file upload, student playback library or automatic course publication. The separate recorded-course section remains for a future upload workflow.
+
+### Recording notices and access
+
+The application stores only staff identity, class, a random recording ID, notice expiry and audit events. It never receives video/audio blobs, filenames, paths, file handles or local URLs. Notices describe browser-reported staff intent, not cryptographic proof that encoding or saving succeeded. On start, students in the website see a recording notice on normal class polling (normally within six seconds). The classroom pre-notice also explains that authorized staff may record. Direct Jitsi users outside this website do not receive this application banner.
+
+Notice start/heartbeat requires an active staff session, assigned class and live class status, with normal origin checks and API rate limits. A lease expires after 45 seconds; the browser refreshes every 15 seconds, stops on failed refresh and locally checks expiry every second. Duplicate start is idempotent for the same live notice; expired/stopped IDs cannot be revived. The app does not try to prevent recording by operating-system tools.
+
+### API and additive schema
+
+All routes use the existing `/api/live` session and origin middleware:
+
+- `GET /classes/:id/learning`: shared lesson and role-filtered reports.
+- `POST /classes/:id/lesson`: assigned staff, `{version,topic,summary,homework}`.
+- `POST /classes/:id/reports/:studentId`: assigned staff, `{version,attendance,stage,covered,homeworkStatus,feedback}`.
+- `POST /classes/:id/copy`: admin only, `{scheduled}` as an ISO timestamp. UI entry uses the device's local time and converts to UTC.
+- `POST /classes/:id/recording`: assigned staff, `{action: start|heartbeat|stop, recordingId: UUIDv4}`. No media upload endpoint exists.
+
+`openDb` adds schema version 3 and three separate tables: `class_lessons`, `student_lesson_reports`, `local_recording_notices`. Back up the existing database using the documented SQLite procedure before updating the service. Startup migration preserves existing accounts/assignments/receipts. Include the new tables in private backups and institution-approved retention. The service remains a single API process; use shared durable storage/rate limiting before horizontal scaling.
+
+### Verification and activation limits
+
+`npm test` in `live-class` covers actual SQLite/HTTP role isolation, atomic conflicting edits, private student reports, next-session roster copying, notice authorization/expiry/idempotency, absence of fabricated attendance, and dependency-injected recorder lifecycle/errors/ordered writes/cancellation. `NODE_PATH=/path/to/jsdom/node_modules node tests/learning-ui.cjs` tests the compiled React workflow, student read-only view, explicit staff-only recording, file/download modes, class-exit stop, permission cancellation and heartbeat failure. Existing Jitsi/access/receipt/portable and public-page tests remain applicable.
+
+The current Node suite passes 50 tests. Chromium layout QA passed 60 fictional views: teacher/student/admin learning, recording ready/active and admin classes, at widths 320/390/768/1280/1920 and heights 844/375. Native Chromium MediaRecorder/Web Audio encoding and decoded playback were checked with synthetic canvas/audio streams (640×360) in download mode and a direct-writer test double. No camera, microphone, real classroom, real destination-file permission or provider call was used in those synthetic tests.
+
+Before real use, deploy/restart the Node service with a database backup, configure the actual private Jitsi/LiveKit host, and test two devices on different networks. On the intended operator PC verify tab-audio selection, optional own microphone, visible student notice, a complete saved local file that plays with both voices, long-class disk behavior, stop/leave/reconnect, and school/guardian recording policy. Those real-provider/OS/device acceptance checks and production hosting remain outstanding. The future prerecorded-course upload system remains separate.
+
+Primary browser references: [screen capture](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia), [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder), [save-file picker](https://developer.mozilla.org/en-US/docs/Web/API/Window/showSaveFilePicker), [writable-file finalization](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle/createWritable), [Chrome File System Access](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access).

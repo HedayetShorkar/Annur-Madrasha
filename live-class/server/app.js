@@ -1,6 +1,7 @@
 import express from 'express';import helmet from 'helmet';import {rateLimit} from 'express-rate-limit';import bcrypt from 'bcryptjs';import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {allocateLoginId,generatePassword,normalizeLoginId} from './identities.js';
 import {receiptRoutes} from './receipts.js';
+import {learningRoutes,recordingNotices} from './learning.js';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 const fail=(status,code)=>{throw Object.assign(Error(code),{status});};
 const safeUser=u=>({id:u.id,name:u.name,email:u.role==='student'?(u.contact_email||null):u.email,loginId:u.role==='student'?u.login_id:null,role:u.role,active:!!u.active});
@@ -45,7 +46,7 @@ export function createApp({db,video,origin,production=false,trustProxyHops=0}){
  const u=req.user;const all=db.prepare('SELECT c.*,u.name teacher FROM classes c JOIN users u ON c.teacher_id=u.id ORDER BY c.scheduled DESC').all();const rows=all.filter(c=>u.role==='admin'||c.teacher_id===u.id||db.prepare('SELECT 1 FROM roster WHERE class_id=? AND user_id=? AND blocked=0').get(c.id,u.id));
  let live=[],unavailable=false;if(video.enabled&&capabilities.roomStats){try{live=await video.list();}catch{unavailable=true;}}
  const result=await Promise.all(rows.map(async c=>{const room=live.find(r=>r.name===c.room);let participants=[];let participantError=false;if(room&&(u.role==='admin'||c.teacher_id===u.id)){try{participants=(await video.participants(c.room)).map(p=>({id:p.identity,name:p.name,audioMuted:!(p.tracks||[]).some(t=>t.type===0&&!t.muted)}));}catch{participantError=true;}}
- return {...c,liveNow:capabilities.roomStats?!!room:null,count:capabilities.roomStats?(room?.numParticipants||0):null,participants,participantError,roster:u.role==='admin'||c.teacher_id===u.id?db.prepare('SELECT u.id,u.name,r.blocked FROM roster r JOIN users u ON r.user_id=u.id WHERE r.class_id=?').all(c.id):undefined};}));res.json({classes:result,videoConfigured:video.enabled,video:videoInfo,unavailable,checkedAt:new Date().toISOString()});});
+ return {...c,recordings:recordingNotices(db,c.id),liveNow:capabilities.roomStats?!!room:null,count:capabilities.roomStats?(room?.numParticipants||0):null,participants,participantError,roster:u.role==='admin'||c.teacher_id===u.id?db.prepare('SELECT u.id,u.name,r.blocked FROM roster r JOIN users u ON r.user_id=u.id WHERE r.class_id=?').all(c.id):undefined};}));res.json({classes:result,videoConfigured:video.enabled,video:videoInfo,unavailable,checkedAt:new Date().toISOString()});});
  app.post('/api/live/classes',auth,admin,(req,res)=>{const title=str(req.body.title),teacher=db.prepare("SELECT id FROM users WHERE id=? AND role='teacher' AND active=1").get(str(req.body.teacherId)),scheduled=str(req.body.scheduled);if(!title||!teacher||!scheduled||!Number.isFinite(Date.parse(scheduled)))fail(400,'INVALID_CLASS');const id=randomUUID();db.prepare('INSERT INTO classes(id,title,teacher_id,room,scheduled) VALUES(?,?,?,?,?)').run(id,title,teacher.id,'annoor-'+randomUUID(),new Date(scheduled).toISOString());audit(req.user.id,'CLASS_CREATED',id);res.status(201).json({id});});
  app.post('/api/live/classes/:id/roster',auth,admin,(req,res)=>{const c=manage(req),student=db.prepare("SELECT id FROM users WHERE id=? AND role='student' AND active=1").get(str(req.body.userId));if(!student||c.status==='ended')fail(400,'INVALID_STUDENT');db.prepare('INSERT INTO roster(class_id,user_id,blocked) VALUES(?,?,0) ON CONFLICT(class_id,user_id) DO UPDATE SET blocked=0').run(c.id,student.id);audit(req.user.id,'STUDENT_ASSIGNED',c.id,{student:student.id});res.json({ok:true});});
  app.get('/api/live/health',(_,res)=>res.json({ok:true,videoConfigured:video.enabled,video:videoInfo}));
@@ -58,6 +59,7 @@ export function createApp({db,video,origin,production=false,trustProxyHops=0}){
  app.get('/api/live/classes/:id/attendance',auth,(req,res)=>{const c=manage(req);res.json(db.prepare('SELECT a.*,u.name FROM attendance a JOIN users u ON u.id=a.user_id WHERE class_id=?').all(c.id));});
  app.get('/api/live/audit',auth,admin,(_,res)=>res.json(db.prepare('SELECT * FROM audit ORDER BY id DESC LIMIT 100').all()));
  receiptRoutes(app,{db,auth,admin,audit});
+ learningRoutes(app,{db,auth,admin,getClass,manage,audit});
  app.use((err,req,res,next)=>{if(res.headersSent)return next(err);const known=typeof err.message==='string'&&/^[A-Z][A-Z0-9_]+$/.test(err.message);const status=err.status&&err.status>=400&&err.status<500?err.status:503;res.status(status).json({error:known?err.message:status===400?'INVALID_INPUT':'SERVICE_UNAVAILABLE'});});
  return app;
 }

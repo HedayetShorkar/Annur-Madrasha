@@ -13,7 +13,7 @@ The supplied code under `reference/` remains unchanged as recovery/reference mat
 - The dashboard displays all authorized classrooms, active media rooms and current connections, refreshed every six seconds. Connections include teachers and supervisors.
 - Administrators can open up to four silent live previews at once. Their names are visible in each room. Other rooms remain visible as status cards. A supervisor may instead enter one classroom interactively and enable their own microphone/camera.
 - Teachers/admins start or end classes, stop issuing new student access, mute currently published student microphones, and remove/block students. A single student's mute is also available.
-- Video calls include participant tiles, microphone/camera controls, screen sharing and in-room chat through LiveKit components. Devices start off. No recording is configured.
+- Video calls include participant tiles, microphone/camera controls, screen sharing and in-room chat through LiveKit components. Devices start off. Optional staff-only local recording is documented below; no provider/cloud recorder is enabled.
 - Media-server snapshots record first/last observed presence and sample counts. This is not precise duration or proof of attentiveness. Very short visits between samples can be missed.
 - Account deactivation, password change/reset, session invalidation and action audit logs are included.
 
@@ -50,7 +50,7 @@ The service is one Node API process with a persistent local SQLite database. For
 - LiveKit: removing a student marks the roster blocked before asking the media server to disconnect them. End marks the class ended before asking the media server to delete the room. The server retries cleanup via its ten-second reconciliation cycle and re-checks current identities. Previously issued or refreshed media credentials may briefly connect before that check, especially across different LiveKit deployments. These controls are not instantaneous global token revocation. Effective removal requires API worker and media API connectivity.
 - LiveKit: one failed classroom cleanup does not stop checks for other classrooms. Errors are shown as unavailable/pending, not confirmed success. Mic mute affects currently published audio; students can unmute themselves. Forced unmute and persistent mic-permission restrictions are not implemented.
 - Website class/access polling continues during active calls. Closing a class or removing its assignment closes the embedded website session on a successful poll (normally every six seconds). This does not control direct Jitsi sessions outside the website. LiveKit: Session expiration/logout stops application access, but logout is not a server-wide media revocation command. Account deactivation is enforced on connected identities by reconciliation.
-- All supervision is visible; no hidden participation or recording. The release does not implement billing integration, recurring timetable generation, email delivery, MFA or self-service email password recovery. The administrator can reset teacher/student passwords; users can change their own passwords. Protect the administrator account and backup the database.
+- All supervision is visible. Optional staff-started local recordings display a website notice; there is no hidden participation or automatic recording. The release does not implement billing integration, recurring timetable generation, email delivery, MFA or self-service email password recovery. The administrator can reset teacher/student passwords; users can change their own passwords. Protect the administrator account and backup the database.
 
 ## Operations
 
@@ -93,3 +93,15 @@ The same authenticated administrator session now authorizes the receipt desk at 
 `server/receipts.js` and the adjacent `../shared/receipt-core.mjs` add schema version 3, admin-only issuing/register/printing/voiding, integer money calculations, atomic receipt sequences, idempotency keys, unique provider/transaction references and audits. Keep **both** private `live-class/` and `shared/` on the server and back up the SQLite database before upgrading. Existing users, permanent IDs, classes and sessions are preserved.
 
 Read `../RECEIPT_DESK_UPDATE.md` for the office workflow, deployment requirements and boundaries. Online collection stays disabled. These manual receipts do not automatically synchronize with the future Supabase ledger; consolidate the claim stores before enabling online collection.
+
+## Learning records and local recording
+
+Open **পড়াশোনা ও অগ্রগতি** to select an assigned class. The teacher/admin can save a lesson topic, notes and homework, then enter attendance, reading stage (Qaida/Quran/Hifz), covered material, homework status and private feedback for each rostered student. Students can read their own evaluation and shared lesson only. These teacher-entered records are distinct from provider-sampled attendance. Optimistic versions prevent simultaneous edits silently overwriting each other.
+
+On an admin class card, open **অংশগ্রহণকারী ও ব্যাচ** → **একই ব্যাচের পরবর্তী ক্লাস**, select the next date/time, and create a new room/session with active, unblocked students. Previous lesson/attendance/progress stay with their original class. This is an explicit next-session action, not automatic timetable generation.
+
+In a joined class, its assigned teacher or the administrator can use **ক্লাসের রেকর্ড আপনার কম্পিউটারে**. First choose a local file if the browser offers it, then explicitly start recording and select the classroom tab with **Share tab audio** enabled. The optional own-voice microphone is separate from the conference mute switch and is clearly labelled. Missing tab audio or denied requested microphone prevents start. Use headphones to reduce echo. Press stop and wait for completion before closing the page; download-mode results require the download button.
+
+Files stay on the recording computer. A teacher recording on their computer does not transfer that file to the owner's computer. For a local owner copy, the administrator must join and record on their own computer; staff may alternatively transfer a finished file outside this module. Nothing is uploaded, stored in Supabase or published in the future recorded-course section.
+
+Back up SQLite before upgrading. Startup adds schema version 3 (`class_lessons`, `student_lesson_reports`, `local_recording_notices`) in the existing additive migration, preserving IDs, passwords, classes and receipts. See [operations, API, tests and browser limits](../docs/OPERATIONS.md#learning-records-and-local-recording).

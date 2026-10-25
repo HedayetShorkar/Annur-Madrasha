@@ -53,3 +53,27 @@ footer{padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
 }
 @media(max-height:500px) and (max-width:1100px){.classroom{height:calc(100dvh - 90px);min-height:250px}.monitor .lk-room-container{height:240px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Learning records and intentional local recording share the existing palette. */
+textarea{display:block;width:100%;min-width:0;max-width:100%;resize:vertical;font:inherit;font-size:16px;line-height:1.7;padding:12px;border:1px solid #cbdcd3;border-radius:10px;color:#173c30;background:#fff;margin-top:6px}
+textarea:focus-visible{outline:3px solid #d4af37;outline-offset:3px}
+.class-filters{display:flex;align-items:end;gap:16px;flex-wrap:wrap;margin:22px 0;padding:16px 20px}
+.class-filters label{flex:1 1 230px;margin:0}.class-filters span{font-size:13px;color:#476556;padding-bottom:12px}
+.learning-layout{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,2fr);gap:20px;align-items:start}
+.learning-layout>*{min-width:0}.lesson-picker{position:sticky;top:18px;padding:18px}.lesson-picker label{margin-top:0}
+.lesson-options{display:grid;gap:8px;max-height:550px;overflow:auto;margin-top:16px}.lesson-options button{text-align:left;display:block;padding:14px}.lesson-options small{margin-top:4px}
+.lesson-options .lesson-selected{border-color:#06865b;background:#e8f7ee;box-shadow:inset 3px 0 #08724e}
+.learning-content{display:grid;gap:20px}.learning-content p,.lesson-text,.student-progress{white-space:pre-wrap;overflow-wrap:anywhere}
+.learning-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.learning-content .heading{margin-bottom:12px}.learner-entry summary{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 0}.learner-entry summary span{font-size:12px;color:#587568}
+.learner-entry form{padding-block:8px 16px}.learner-entry button{margin-top:12px}.learning-success{padding:14px 20px;background:#e2f7e9;border:1px solid #a9d9bb;border-radius:12px;color:#175132;margin:0}
+.student-progress dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.student-progress dl>div{background:#f0f7f3;border-radius:12px;padding:14px}.student-progress dt{font-size:12px;color:#567360}.student-progress dd{margin:6px 0 0;font-weight:600}
+.next-class-form{border-top:1px solid #dce7e1;margin-top:24px;padding-top:8px}
+.recording-panel{margin-bottom:24px;border-color:#a9cdb8;background:linear-gradient(120deg,#fff,#f1faf4)}
+.recording-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.recording-heading h2{margin:6px 0}.recording-heading .eyebrow{margin:0}
+.recording-check{display:flex;align-items:flex-start;gap:12px;font-weight:400}.recording-check input{width:20px;min-height:20px;flex:none;margin:3px 0;accent-color:#086346}
+.recording-panel .actions{align-items:center}.recording-panel .actions>span{font-size:13px;line-height:1.7}.recording-timer{font:600 18px ui-monospace,monospace;color:#a82b2b;white-space:nowrap}
+.is-recording{border-color:#d7a29b;position:sticky;top:8px;z-index:15;padding:14px 20px;box-shadow:0 8px 30px #113c2326}.is-recording>p:not(.error){display:none}.is-recording .recording-heading h2{font-size:18px}.recording-notice{background:#fff0e9;border:1px solid #e7b8a6;border-radius:12px;padding:12px 16px;color:#8a3522;line-height:1.7;margin-block:14px;font-size:14px}
+.recording-result{margin-top:20px;border-top:1px solid #b8d7c4;padding-top:18px;overflow-wrap:anywhere}.recording-result p{margin-block:5px}.recording-result .actions{margin-top:10px}
+@media(max-width:800px){.learning-layout{grid-template-columns:minmax(0,1fr)}.lesson-picker{position:static}.lesson-options{max-height:220px;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.learning-fields,.student-progress dl,.lesson-options{grid-template-columns:minmax(0,1fr)}.recording-heading{gap:10px}.recording-heading h2{font-size:21px}.learning-content .primary{width:100%}.class-filters label{flex-basis:100%}.class-filters span{padding:0}}
