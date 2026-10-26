@@ -32,7 +32,7 @@ function publicMarkup(){
  assert.equal(d.querySelectorAll('#pg .pk2').length,3);assert.match(d.querySelector('#pg').textContent,/৯৯৯/);assert.match(d.querySelector('#pg').textContent,/শনিবার–বুধবার/);assert.match(d.querySelector('#pg').textContent,/শনিবার–বৃহস্পতিবার/);
  const prices=read('assets/js/app.js').slice(read('assets/js/app.js').indexOf('const pk='),read('assets/js/app.js').indexOf('const cur='));const plans=vm.runInNewContext(prices+';pk',{B:()=>''});
  for(const plan of plans){const article=[...guide.querySelectorAll('.guide-plans article')].find(x=>x.querySelector('h3').textContent===plan[0]);assert.ok(article);assert.match(article.textContent,new RegExp(plan[7].toFixed(2).replace('.','\\.')));assert.match(article.textContent,new RegExp(plan[4].toLocaleString('bn-BD')));}
- for(const page of [d,guide]){assert.equal(page.querySelectorAll('h1').length>=1,true);assert.ok(page.querySelector('meta[name=description]').content.length>50);assert.ok(page.querySelector('meta[name=viewport]').content.includes('viewport-fit=cover'));assert.equal(page.querySelectorAll('nav.mobile-quick a').length,3);}
+ for(const page of [d,guide]){assert.equal(page.querySelectorAll('h1').length>=1,true);assert.ok(page.querySelector('meta[name=description]').content.length>50);assert.ok(page.querySelector('meta[name=viewport]').content.includes('viewport-fit=cover'));assert.equal(page.querySelectorAll('nav.mobile-quick a:not([hidden])').length,3);}
  assert.ok(!d.querySelector('meta[name=keywords]'));assert.equal(d.querySelector('link[rel=preload][as=image]').getAttribute('href'),'assets/images/brand-asset-1.webp');
  assert.match(read('live-class/index.html'),/noindex,nofollow/);assert.match(read('payment-module/index.html'),/noindex,nofollow/);assert.match(read('admin/index.html'),/noindex,nofollow/);
  assert.ok(!read('index.html').includes('[Email: admin to add]'));
@@ -65,7 +65,7 @@ async function mobileAndDecorations(){
  hidden=true;d.dispatchEvent(new w.Event('visibilitychange'));tick.fn();assert.equal(clockWrites,2);assert.ok(d.documentElement.hasAttribute('data-page-paused'));hidden=false;d.dispatchEvent(new w.Event('visibilitychange'));assert.ok(!d.documentElement.hasAttribute('data-page-paused'));
  const bar=d.querySelector('.mobile-quick');assert.equal(bar.hidden,false);w.location.hash='#/admission';w.dispatchEvent(new w.HashChangeEvent('hashchange'));assert.equal(bar.hidden,true);w.location.hash='#home';w.dispatchEvent(new w.HashChangeEvent('hashchange'));assert.equal(bar.hidden,false);
  // The phone shortcut must not repeat an action that is already readable on screen.
- const inline=d.querySelector('.hero .live-entry');let inlineTop=120;
+ const inline=d.querySelector('.hero .trial-entry');let inlineTop=120;
  inline.getClientRects=()=>[{top:inlineTop,bottom:inlineTop+48,left:20,right:240,width:220,height:48}];inline.getBoundingClientRect=()=>inline.getClientRects()[0];
  w.dispatchEvent(new w.Event('scroll'));await pause();assert.equal(bar.hidden,true);
  inlineTop=900;w.dispatchEvent(new w.Event('scroll'));await pause();assert.equal(bar.hidden,false);

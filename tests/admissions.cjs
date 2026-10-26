@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {PGlite}=require('../payment-module/node_modules/@electric-sql/pglite');
 (async()=>{const db=new PGlite();await db.exec('create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);');
-await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261024154154_admissions.sql'),'utf8'));
+await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261024181248_admissions.sql'),'utf8'));
 const today=(await db.query("select (now() at time zone 'Asia/Dhaka')::date::text as d")).rows[0].d;
 const data={request_id:crypto.randomUUID(),student_name:'TEST',guardian_name:'TEST GUARDIAN',age:10,consent:true,plan:'Basic',start_date:today,phone:'TEST'};
 const submit=async d=>(await db.query('select public.annoor_submit_admission($1::jsonb,$2) as r',[JSON.stringify(d),'test-ip'])).rows[0].r;

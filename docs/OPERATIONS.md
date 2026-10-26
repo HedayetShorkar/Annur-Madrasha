@@ -1,6 +1,6 @@
 # An-Noor — current operations
 
-The separate `annoor-madrasa` Supabase project (`jbmxquvgrekyapcoezmh`) stores admissions. The examination-board project is untouched.
+The separate `annoor-madrasa` Supabase project (`jbmxquvgrekyapcoezmh`) stores admissions, free-trial requests and moderated guardian feedback. The examination-board project is untouched.
 
 ## Using the pages
 
@@ -9,6 +9,12 @@ Publish only `index.html`, `assets/`, `learn/`, `robots.txt`, `404.html`, the ge
 The six-step form submits explicitly to `admissions/submit`. Opening files directly from disk preserves preview-only behavior and sends no form data. On HTTPS, a successful response displays a real application reference and the server's BDT fee estimate. Repeating the same unchanged request uses the same idempotency key. A network error never reports success. Refreshing clears unsaved form data; student data and admin tokens are not stored in localStorage.
 
 `admin/index.html` is the private office login page. A page URL is not an access-control mechanism: every list, audit and decision request validates the current Supabase Auth user and a server-owned `admission_admins` row. Non-admin users cannot read applicants or assign themselves a role. The public navigation does not advertise supervision.
+
+### Admission-device live-class links
+
+The hero, navigation, contextual phone shortcuts, classroom section and footer show their prominent class-entry links only after this browser receives a validated successful admission response. New visitors see the free-trial entry instead. A successful response must contain a valid `ANN-` reference, known status and positive server fee. Failures and malformed responses do not set the hint. A trial request or guardian review never enables it.
+
+The only saved value is `annoor-admission-submitted-v1=1`; no applicant name, phone, reference or form contents are persisted in browser storage. This is a display preference, not proof of enrollment or an access token. Clearing site storage, using private browsing or another browser/device removes the preference. When storage is blocked, the current page updates after success but later visits cannot remember it. Storage changes synchronize across open tabs. Existing students on another device can reach the existing student-login information page and use their issued credentials without submitting a new application. The private classroom still enforces active student IDs, passwords and assigned classes on the server.
 
 ## First administrator (owner deferred email selection)
 
@@ -29,6 +35,36 @@ No default account or password was created. The admissions office uses Supabase 
 New applications are SUBMITTED. Authorized staff can move them into IN_REVIEW, APPROVED or REJECTED with a 5–1000 character reason. Decisions lock the row and compare the expected status to reject stale changes. APPROVED is terminal in this release; changes require an explicit future correction workflow. Each decision has an append-only audit entry. Approval does not confirm a payment, issue a receipt or grant classroom access.
 
 The list has 25 records per page and a status filter. Each record shows student/guardian details, Hifz, plan, preferred date, availability and fee. No public reference-lookup endpoint exposes personal data.
+
+## Trial requests and moderated guardian feedback
+
+Updated 26 October 2026. The existing compact classroom section now offers visitors two free introductory lessons and opens a short trial dialog. It collects student name, age (5–18), guardian name, international contact number, Quran level, optional preferred time/country/timezone and consent. Staff confirm a suitable class subject to teacher/batch availability. A successful request generates an `ANT-` reference; it does not create a fee, invoice, student account, seat reservation or class assignment. Entries remain after an unsuccessful request, and unchanged retries use the same in-memory request ID. Changing only the page language preserves both the retry ID and original request language. No online payment is added.
+
+The guardian-feedback dialog retains preview/copy, character count and optional rating. On a connected online website it submits with explicit publication consent and returns an `ANR-` reference. Public cards are fetched separately and contain only approved feedback. Submission does not immediately display a card. File/unconfigured previews disclose that nothing is submitted and preserve the draft workflow. Public messages never contain private contact details or a request reference; record text is rendered with `textContent` rather than HTML.
+
+The feed loads near the section, six approved records at a time, with a visible loaded/total count, previous/next controls, swipe/scroll-snap on phones, two cards on screens wider than 1100px, load-more and retry/empty states. Long reviews scroll inside their cards. Pagination tracks consumed server rows and deduplicates rendered IDs. The production database contained no approved reviews at verification time; no fictional testimonials were seeded. Feedback withdrawal removes a record from subsequent feed requests; already-open pages show their fetched copy until refreshed.
+
+The office has three separate queues: **ভর্তি আবেদন / ফ্রি ট্রায়াল / অভিভাবক মতামত**. Admission behavior and fee estimates remain unchanged. Trials support SUBMITTED/IN_REVIEW/APPROVED/REJECTED, while reviews support PENDING/APPROVED/REJECTED. Review approval publishes; rejection withdraws publication. Every trial/review decision requires a reason, locks the record and compares its integer version, preventing concurrent or stale decisions, including a return to an earlier status. Each submission and decision has an immutable audit entry. List responses from a previously selected queue cannot replace the current queue after a late network response.
+
+The owner still needs to select/provision the first office administrator as described above. No default Supabase administrator, password, invitation or classroom account was created. Approval of a trial or review never grants live-class access or confirms payment.
+
+### Database and endpoint deployment
+
+`20261026004357_trials_and_reviews.sql` is the actual hosted migration version. It adds `trial_applications`, `parent_reviews`, `engagement_audit` and service-only ingestion, approved-feed and office RPCs. All three tables have RLS and no anonymous/authenticated table grants or policies. Private RPC execution is also denied to these roles. The public feed RPC returns only `id`, `name`, `country`, `text`, `rating` and `published_at` for APPROVED records. It never exposes the stored JSON payload.
+
+The existing admissions migration was renamed to `20261024181248_admissions.sql` to match its already-applied hosted version. Its SQL bytes were checked against the hosted migration and remain unchanged. This is migration-history alignment, not a second execution of the old schema.
+
+The existing `admissions` Edge Function is deployed ACTIVE at version 3. Its health payload is version 2 and lists admissions, free trials and moderated reviews. Existing `submit/list/decide/audit` routes remain. New routes are public `trial-submit`, `review-submit`, `published-reviews`, and authenticated `trial-list/decide/audit` and `review-list/decide/audit`. The project URL and publishable key already in browser configuration are sufficient; no new frontend secret or runtime dependency is required. Privileged credentials remain in the Edge environment.
+
+Server checks include streamed 16KB JSON limits, exact field allowlists, validated consent/ages/ratings, honeypots, request UUID uniqueness and idempotent immutable retries, durable source/contact limits (5 per hour) and per-kind global limits (200 per hour). Source IP is HMAC-derived on the server and contact keys are hashed; raw IPs are not stored. Admin requests require a real confirmed non-anonymous Auth user plus an active server-owned administrator role. Errors return safe codes without SQL or private payloads. Service RPCs use invoker security with an empty search path. The expected security-advisor INFO for server-only RLS tables without user policies remains default-deny; no permissive policy was added to silence it.
+
+Verification: `node tests/engagement.cjs` exercises the real PostgreSQL engine through PGlite, including validation, conflicting retries, default-deny privileges/RLS, private pending records, public-field projection, version races, withdrawal, immutable audit and durable limits. `node tests/engagement-edge.cjs` tests the actual TypeScript handler's public/admin boundaries, HMAC source, safe responses and body limits. `NODE_PATH=/path/to/jsdom/node_modules node tests/engagement-ui.cjs` checks device hints, trial retries/language, safe public cards, pending-not-published behavior and office moderation/logout. `node tests/engagement-hosted.cjs` checks deployed health, public feed, invalid input and forged/anonymous admin denial without inserting submissions. A separate hosted SQL transaction exercised valid ingestion, retry, approval/projection and withdrawal, then rolled back all synthetic rows; zero test records remained. First-owner admin login and physical-phone acceptance remain separate.
+
+Native Chromium checked 288 public layouts: visitor/applicant hero, trial section/dialog, multiple-review feed/dialog, offline feedback and teachers across the four priority phone widths (320/360/390/412px), two heights (844/375px), both languages and themes, plus selected 768/1280px cases. All passed document/control overflow, conditional-entry and round/protruding-portrait checks. The office's 24 inert admission/trial/review phone snapshots initially found overflowing long references on narrow trial/review cards; text wrapping fixed this and all 24 office cases passed their focused recheck. Direct phone-frame interaction verified invalid age/absent consent rejection, retained entries and retry after a simulated network failure, review Next/load-more (6 to 8 cards), visitor menu visibility and the applicant hero. No real record or login was submitted through the browser. Fixture reviews are explicitly fictional and excluded from source/public staging and the ZIP.
+
+This browser check also found missing `crypto.randomUUID` on HTTP preview origins. The shared request-ID helper now uses browser cryptographic random bytes for RFC 4122 version-4 IDs when that method is unavailable; it never uses `Math.random`. If no cryptographic RNG is available, forms show a safe browser-update message, preserve entries and make no request. Both compatibility paths have regression coverage. Production pages should still use HTTPS.
+
+Teacher portraits restore the original 72px circular frames, original cutout positioning and protruding heads. Light-mode cards use a sage gradient (`#c4dccc` to `#a7c8b5`) with stronger secondary text. Original image bytes, hero palette/animation, fees, schedules, admission wizard and private classroom/receipt service remain intact. These checks are browser-frame verification, not physical Android/iPhone, on-screen-keyboard, media-service or whole-site accessibility acceptance.
 
 ## Backend and deployment
 

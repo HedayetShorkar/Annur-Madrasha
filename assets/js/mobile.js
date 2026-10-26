@@ -16,7 +16,7 @@
  // Treat index.html and its directory URL as the same destination, including on the guide.
  const destination=link=>{const url=new URL(link.href,location.href);return url.origin+url.pathname.replace(/index\.html$/,'')+url.hash;};
  const destinations=new Set([...bar.querySelectorAll('a[href]')].map(destination));
- const inlineActions=[...document.querySelectorAll('a[href]')].filter(a=>!bar.contains(a)&&destinations.has(destination(a)));
+ const inlineActions=[...document.querySelectorAll('a[href]')].filter(a=>!bar.contains(a)&&destinations.has(destination(a))).concat([...document.querySelectorAll('[data-trial-open]')]);
  function inlineActionVisible(height){
   const top=Math.max(0,document.querySelector('.site-nav')?.getBoundingClientRect().bottom||0),bottom=height-76;
   return inlineActions.some(a=>{
@@ -38,7 +38,7 @@
   document.body.classList.toggle('has-mobile-quick',home&&phone.matches);
   bar.querySelectorAll('a').forEach(a=>{if(a.getAttribute('href')===location.hash)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
  }
- addEventListener('hashchange',sync);document.addEventListener('annoor:route',sync);
+ addEventListener('hashchange',sync);document.addEventListener('annoor:route',sync);document.addEventListener('annoor:entry-change',sync);
  document.addEventListener('focusin',sync);document.addEventListener('focusout',()=>setTimeout(sync,0));
  const scheduleSync=()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;sync();});}};
  viewport?.addEventListener('resize',sync);addEventListener('resize',sync);addEventListener('scroll',scheduleSync,{passive:true});phone.addEventListener?.('change',sync);

@@ -1,4 +1,5 @@
 project_id = "jbmxquvgrekyapcoezmh"
 [functions.admissions]
 verify_jwt = false
-# submit is public; administrator routes independently validate Auth and server roles.
+# Admission/trial/review intake and approved feedback are public.
+# All administrator routes independently validate Auth and server-owned roles.

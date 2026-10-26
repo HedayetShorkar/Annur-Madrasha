@@ -1,0 +1,34 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ts=require('../payment-module/node_modules/typescript');
+(async()=>{
+ let handler,rpcCalls=[],authMode='admin';const id='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';
+ const rpcResult={annoor_submit_trial:{reference:'ANT-'+'A'.repeat(32),status:'SUBMITTED'},annoor_submit_review:{reference:'ANR-'+'B'.repeat(32),status:'PENDING'},annoor_published_reviews:{items:[],total:0},annoor_submit_admission:{reference:'ANN-'+'C'.repeat(32),status:'SUBMITTED',fee_bdt_minor:99900}};
+ const sandbox={URL,TextEncoder,TextDecoder,Request,Response,Uint8Array,crypto:globalThis.crypto,console,Deno:{env:{get:name=>name==='SUPABASE_URL'?'https://project.test':'SERVER-ONLY-TEST-KEY'},serve:fn=>handler=fn},fetch:async(url,options)=>{
+  if(url.endsWith('/auth/v1/user'))return new Response(JSON.stringify({id:authMode==='admin'?id:other,email_confirmed_at:authMode==='unconfirmed'?null:'2026-10-26T00:00:00Z',is_anonymous:authMode==='anonymous',user_metadata:{admin:true}}),{status:options.headers.Authorization==='Bearer forged'?401:200});
+  const name=url.split('/').pop(),body=JSON.parse(options.body);assert.equal(options.headers.apikey,'SERVER-ONLY-TEST-KEY');assert.equal(options.headers.Authorization,'Bearer SERVER-ONLY-TEST-KEY');rpcCalls.push({name,body});
+  if(name==='annoor_admin_engagement'&&body.p_actor!==id)return new Response(JSON.stringify({message:'FORBIDDEN'}),{status:403});
+  return new Response(JSON.stringify(rpcResult[name]||{items:[],total:0}));
+ }};
+ const source=fs.readFileSync('supabase/functions/admissions/index.ts','utf8'),js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(js,sandbox);
+ const request=async(route,body,token,method=body?'POST':'GET')=>handler(new Request('https://project.test/functions/v1/admissions/'+route,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})}));
+ assert.equal((await request('health')).status,200);assert.equal((await request('published-reviews')).status,200);assert.equal(rpcCalls.at(-1).name,'annoor_published_reviews');
+ for(const suffix of ['?offset=-1','?offset=10001','?offset=abc','?status=PENDING'])assert.equal((await request('published-reviews'+suffix)).status,400);
+ const trial={request_id:crypto.randomUUID(),student_name:'Synthetic student',age:10,guardian_name:'Synthetic guardian',phone:'+880 1700-000000',level:'To discuss',preferred_time:'Discuss later',consent:true,language:'bn',website:''};
+ const ok=await request('trial-submit',trial);assert.equal(ok.status,200);assert.equal((await ok.json()).status,'SUBMITTED');assert.equal(rpcCalls.at(-1).body.p_data.phone,'+8801700000000');assert.match(rpcCalls.at(-1).body.p_ip,/^[a-f0-9]{64}$/);assert.equal(rpcCalls.at(-1).body.p_data.website,undefined);
+ for(const invalid of [{age:4},{age:19},{age:10.5},{consent:'true'},{phone:'bad'},{status:'APPROVED'},{website:'spam'}])assert.equal((await request('trial-submit',{...trial,...invalid})).status,400);
+ const review={request_id:crypto.randomUUID(),guardian_name:'Synthetic parent',country:'Test country',review:'A purely synthetic test review.',rating:null,publish_consent:true,language:'en',website:''};
+ assert.equal((await request('review-submit',review)).status,200);assert.equal(rpcCalls.at(-1).name,'annoor_submit_review');
+ for(const invalid of [{rating:0},{rating:6},{publish_consent:false},{publish_consent:'true'},{review:'short'},{status:'APPROVED'}])assert.equal((await request('review-submit',{...review,...invalid})).status,400);
+ assert.equal((await request('review-list',{offset:0})).status,401);assert.equal((await request('trial-list',{offset:0},'forged')).status,401);
+ for(const mode of ['unconfirmed','anonymous','unauthorized']){authMode=mode;assert.equal((await request('review-list',{offset:0},'valid')).status,403);}authMode='admin';
+ assert.equal((await request('review-list',{offset:0},'valid')).status,200);assert.equal(rpcCalls.at(-1).body.p_actor,id);assert.equal(rpcCalls.at(-1).body.p_kind,'REVIEW');
+ assert.equal((await request('review-decide',{id,status:'APPROVED',expected_version:1,reason:'Synthetic moderation'},'valid')).status,200);
+ assert.equal((await request('review-decide',{id,status:'APPROVED',expected_version:1,reason:'Synthetic moderation',actor:other},'valid')).status,400);
+ assert.equal((await handler(new Request('https://project.test/functions/v1/admissions/trial-submit',{method:'POST',headers:{'Content-Type':'text/plain'},body:'{}'}))).status,415);
+ assert.equal((await handler(new Request('https://project.test/functions/v1/admissions/review-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:'x'.repeat(17000)}))).status,413);
+ assert.equal((await handler(new Request('https://project.test/functions/v1/admissions/trial-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:'{bad'}))).status,400);
+ assert.equal((await handler(new Request('https://project.test/functions/v1/admissions/review-submit',{method:'OPTIONS'}))).status,204);
+ const admission={request_id:crypto.randomUUID(),student_name:'Synthetic',gender:'boy',age:10,address:'Test city',level:'Noorani Qaida',hifz:'',guardian_name:'Synthetic guardian',relationship:'father',phone:'+8801700000000',email:'',plan:'Basic',start_date:'2026-10-26',availability:{mode:'flexible'},notes:'',consent:true,language:'bn'};
+ assert.equal((await request('submit',admission)).status,200);assert.equal(rpcCalls.at(-1).name,'annoor_submit_admission');
+ console.log('PASS: Edge public validation/whitelists, safe response and HMAC source, no client approval, admin Auth and role checks, forged/anonymous denial, body limits and legacy admissions.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

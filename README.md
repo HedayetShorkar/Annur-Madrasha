@@ -4,7 +4,9 @@ The existing Bangla/English website, six-step admission form, permanent student 
 
 ## Admissions and Supabase
 
-The six-step form now submits to the deployed admissions endpoint and stores real applications with unique references and server-calculated BDT fee estimates. `admin/index.html` provides authorized review, status filtering, pagination and audit history. The owner deferred selecting the first administrator email; no default admin credentials exist. See [current operations](docs/OPERATIONS.md).
+The six-step form submits to the deployed admissions endpoint and stores real applications with unique references and server-calculated BDT fee estimates. A separate short form accepts requests for two free trial lessons, without a fee or automatic class assignment. `admin/index.html` provides separate admission, trial and guardian-feedback queues with authorized decisions and audit history. The owner deferred selecting the first administrator email; no default admin credentials exist. See [current operations](docs/OPERATIONS.md).
+
+Prominent live-class links appear on a browser/device after a validated successful admission submission. Other visitors see the free-trial option. The saved flag contains no applicant details and grants no access: issued student credentials and assigned-class authorization are still required. Existing students on another device can use the student-login information page.
 
 Historical root update reports have been consolidated into [one history document](docs/HISTORY.md), keeping the website's design, source, tests and recovery archives intact.
 
@@ -24,9 +26,9 @@ The public pages, compact navigation, six-step form, classroom portal and receip
 
 The start date is now chosen from a full-date list with Today/Tomorrow/Next-month shortcuts. It stays editable after selecting next month. Labelled time cards support exact-hour defaults, 12/24-hour formats, preserved partial entries and ±15-minute adjustments. Existing fee rules and approved date ranges are retained. See [ADMISSION_DATE_TIME.md](docs/HISTORY.md).
 
-## Parent review presentation
+## Guardian feedback and teacher portraits
 
-The parent-feedback section and dialog have been redesigned with a premium journal layout, optional star rating, character count and an escaped draft preview/copy workflow. Actual submission remains unconnected and is disclosed before writing. See [PARENT_REVIEWS_UPDATE.md](docs/HISTORY.md).
+The feedback form now submits to Supabase with explicit publishing consent. Only staff-approved reviews appear in the paginated public feed: swipeable cards on phones, two cards side by side on wider screens, previous/next controls and a load-more action. Pending/rejected reviews and contact data are never exposed publicly. There are no invented testimonials; an empty feed remains honest. Preview/copy, optional rating and offline draft behavior are preserved. Teachers again use round portraits extending above the frame, with sage-colored light-mode cards to separate white clothing and caps. See [current workflows](docs/OPERATIONS.md#trial-requests-and-moderated-guardian-feedback).
 
 ## Current update: fee & receipt desk
 
@@ -40,7 +42,7 @@ The online payment tab remains a coming-soon option. No receiving number or acti
 
 ## Admission form
 
-Six validated steps with Previous/Next navigation, sticky progress and final review. See [ADMISSION_WIZARD.md](docs/HISTORY.md). Intake now has its deployed endpoint. Parent-review publishing remains unconnected. Existing approved fees/rules, ages 5–18, Hifz option, package weekdays and 12/24-hour time controls are retained.
+Six validated steps with Previous/Next navigation, sticky progress and final review. See [ADMISSION_WIZARD.md](docs/HISTORY.md). Admissions, free-trial requests and moderated guardian feedback have deployed endpoints. Existing approved fees/rules, ages 5–18, Hifz option, package weekdays and 12/24-hour time controls are retained.
 
 ## Lessons, progress and local recording
 
