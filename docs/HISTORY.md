@@ -691,3 +691,8 @@ New PostgreSQL, Edge, browser-controller and hosted checks passed, including ret
 ## 2026-10-26 — Clear teacher portrait outlines in both themes
 
 Replaced the muted gold circle around teacher photos with a deep-emerald/ivory outline on light cards and a mint/dark-green outline on dark cards. Applied mint to the expanded profile's consistently dark surface in both themes. Preserved the original round/protruding portraits, card backgrounds and artwork. Forty targeted native-browser card/profile cases passed at phone and desktop widths, including short phone frames; sampled card ring/surface contrast was at least 4.16:1. Structural/artwork checks passed. No application, admission, payment or classroom logic changed.
+
+
+## 2026-10-26 — One-point portrait ring
+
+Reduced teacher-photo outlines to a single 1pt border on cards and expanded profiles, retaining the theme colors. Removed the stacked outer rings, separator and shadow to avoid a thick appearance. Sixteen native phone-frame cases passed across both themes and the four priority widths; the border computed to 1px in the QA browser, with no shadow or layout/protrusion regression. Original artwork and all functional behavior remain intact.
