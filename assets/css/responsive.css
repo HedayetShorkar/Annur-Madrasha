@@ -201,7 +201,9 @@ html[data-theme=dark] #packages .t-s .pk-b{background:#b6e2c6;color:#214531}
 html[data-theme=dark] #packages .t-p .pk-b{background:#ecd39a;color:#32492f}
 #teachers #tg2{gap:16px;max-width:none}
 #teachers .tcd{display:grid;grid-template-columns:72px minmax(0,1fr);gap:18px 16px;text-align:left;align-items:start;padding:22px;background:linear-gradient(135deg,#c4dccc,#a7c8b5);color:var(--tx);border-color:#9bbca8;border-radius:18px}
-#teachers .tcd .pf{--S:72px;width:72px;height:72px;margin:28px 0 0;border-radius:50%;box-shadow:0 0 0 2px #c5ad72,0 0 0 5px #f3e9ca66;border:1px solid #628e75;background:linear-gradient(150deg,#4d9779,#285c48)}
+#teachers .tcd .pf{--S:72px;--portrait-ring:#0c6046;--portrait-gap:#f4faf5;--portrait-shadow:#163f2c26;width:72px;height:72px;margin:28px 0 0;border-radius:50%;background:linear-gradient(150deg,#4d9779,#285c48)}
+:is(#teachers .tcd,dialog[aria-label="Teacher profile"]) .pf{border:1px solid var(--portrait-ring);box-shadow:0 0 0 2px var(--portrait-gap),0 0 0 5px var(--portrait-ring),0 7px 16px var(--portrait-shadow)}
+html[data-theme=dark] #teachers .tcd .pf,dialog[aria-label="Teacher profile"] .pf{--portrait-ring:#8ad8b1;--portrait-gap:#153b2d;--portrait-shadow:#00000040}
 html[data-theme=dark] #teachers .tcd{background:var(--card);border-color:var(--bd)}
 html[data-theme=light] #teachers .tcd .ds,html[data-theme=light] #teachers .teacher-index{color:#284b37}
 #teachers .tcd .pf .sil span{font-size:9px;padding-bottom:5px}
