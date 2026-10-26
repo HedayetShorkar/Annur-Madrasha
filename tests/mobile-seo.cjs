@@ -56,6 +56,10 @@ async function mobileAndDecorations(){
  const patterns=observers.find(x=>x.targets.some(el=>el.id==='faq')&&x.targets.some(el=>el.matches('footer')));assert.ok(patterns);patterns.emit(d.getElementById('faq'),true);assert.equal(idle.length,1);idle.shift()();assert.equal(paints,2);
  const before=paints;w.dispatchEvent(new w.Event('resize'));await new Promise(r=>setTimeout(r,450));assert.equal(paints,before);assert.equal(idle.length,0);
  const context=w.HTMLCanvasElement.prototype.getContext;w.HTMLCanvasElement.prototype.getContext=()=>{throw Error('Canvas disabled by browser preference');};patterns.emit(d.getElementById('reviews'),true);assert.doesNotThrow(()=>idle.shift()());assert.ok(d.getElementById('sn'));w.HTMLCanvasElement.prototype.getContext=context;
+ // Deferred decoration must not restore the old dark review background over light-mode text.
+ patterns.emit(d.getElementById('reviews'),true);idle.shift()();
+ const reviewPattern=d.getElementById('annoor-patterns').textContent.match(/#reviews\{([^}]+)\}/)?.[1];
+ assert.match(reviewPattern,/background-image:url/);assert.ok(!reviewPattern.includes('linear-gradient'));assert.ok(!reviewPattern.includes('background:'));
  assert.equal(clockWrites,1);const tick=intervals.find(x=>x.ms===1000);tick.fn();tick.fn();assert.equal(clockWrites,1);
  const clockObserver=observers.find(x=>x.targets.length===1&&x.targets[0].id==='global');clockObserver.emit(d.getElementById('global'),false);w.Date.now=()=>Date.parse('2026-10-25T12:34:00Z');tick.fn();assert.equal(clockWrites,1);clockObserver.emit(d.getElementById('global'),true);assert.equal(clockWrites,2);
  hidden=true;d.dispatchEvent(new w.Event('visibilitychange'));tick.fn();assert.equal(clockWrites,2);assert.ok(d.documentElement.hasAttribute('data-page-paused'));hidden=false;d.dispatchEvent(new w.Event('visibilitychange'));assert.ok(!d.documentElement.hasAttribute('data-page-paused'));

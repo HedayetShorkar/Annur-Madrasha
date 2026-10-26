@@ -154,7 +154,7 @@ html[data-page-paused] *,html[data-page-paused] *::before,html[data-page-paused]
 :root[data-theme=dark]{--em:#a5e6c6;--fo:#168361;--dk:#143c31;--of:#15382e;--mint:#245440;--tx:#edf8f2;--mu:#bfd4c7;--bg:#102a23;--card:#194035;--bd:#3b6152}
 .site-nav{box-shadow:0 3px 18px #15583e08}
 .site-nav .brand .nm,.site-nav .brand .nm span{color:var(--tx)}
-.hero{padding:38px 0 58px;background:radial-gradient(ellipse at 82% 30%,#50d4a725,transparent 62%),linear-gradient(125deg,#087157,#08634f);border-bottom-color:#dfc17e66}
+.hero{padding:38px 0 58px;background:radial-gradient(ellipse at 82% 30%,#68b18e14,transparent 62%),linear-gradient(125deg,#0b634e,#0a4d3d);border-bottom-color:#dfc17e66}
 .hero .w{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-areas:'bismillah bismillah' 'copy mark';column-gap:56px;row-gap:28px}
 .hero .ar{grid-area:bismillah;position:static;font-size:28px;line-height:1.7;color:#ffe8b3}
 .hero-copy{grid-area:copy;min-width:0}.hero-mark{grid-area:mark;min-width:0;order:initial}
@@ -163,7 +163,7 @@ html[data-page-paused] *,html[data-page-paused] *::before,html[data-page-paused]
 .hero .plate{margin:14px auto 24px}.hero .b .p{background:#f2d794;color:#244333;border:1px solid #f8e9bd}
 .hero .b .p:hover{background:#ffe9b5}.hero .live-entry{background:#f4fcf7;color:#135c44;box-shadow:none}
 .hero .g:hover{background:#ffffff18;color:#fff}
-html[data-theme=dark] .hero{background:radial-gradient(ellipse at 82% 30%,#40c69c20,transparent 62%),linear-gradient(125deg,#116c56,#10523f)}
+html[data-theme=dark] .hero{background:radial-gradient(ellipse at 82% 30%,#4d9e7d12,transparent 62%),linear-gradient(125deg,#0c5946,#0a4537)}
 #pg-home>section{padding-block:58px}
 #pg-home h2{font-size:clamp(25px,3.4vw,38px);line-height:1.45}
 #pg-home .sub{line-height:1.8;margin-bottom:28px}
@@ -201,7 +201,9 @@ html[data-theme=dark] #packages .t-s .pk-b{background:#b6e2c6;color:#214531}
 html[data-theme=dark] #packages .t-p .pk-b{background:#ecd39a;color:#32492f}
 #teachers #tg2{gap:16px;max-width:none}
 #teachers .tcd{display:grid;grid-template-columns:72px minmax(0,1fr);gap:18px 16px;text-align:left;align-items:start;padding:22px;background:var(--card);color:var(--tx);border-color:var(--bd);border-radius:18px}
-#teachers .tcd .pf{--S:72px;width:72px;height:72px;margin:28px 0 0;border-radius:50%;box-shadow:0 0 0 3px var(--mint);border:1px solid #96bca6;background:linear-gradient(150deg,#6dbd94,#2d8263)}
+#teachers .tcd .pf{--S:72px;width:72px;height:104px;margin:0;border-radius:14px;box-shadow:0 3px 10px #15463818;border:1px solid #89ac9b;background:linear-gradient(150deg,#388572,#205a4d);overflow:hidden}
+#teachers .tcd .pf .im{inset:0;width:100%;height:100%;padding:4px 4px 0;clip-path:none;-webkit-mask:none;mask:none}
+#teachers .tcd .pf .im img{position:static;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 1px 1px #103c2c40)}
 #teachers .tcd .pf .sil span{font-size:9px;padding-bottom:5px}
 .teacher-summary{min-width:0}.teacher-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .teacher-index{font:600 11px Manrope,system-ui;color:var(--mu)}
@@ -223,7 +225,15 @@ html[data-theme=dark] #global{background-color:#1b644c}
 #faq .faq-heading{margin-bottom:24px}#faq .faq-list{gap:10px}#faq .faq-card{padding:20px;gap:20px;border-radius:16px;box-shadow:none}
 #faq .faq-answer p{opacity:1;line-height:1.8;color:var(--mu)}
 html[data-theme=dark] #faq .faq-card{border-color:var(--bd)}
-#reviews.parent-reviews{background-color:#edf5ed;color:var(--tx);border-color:var(--bd)}
+/* Clear the legacy green gradient before the lazy 8% ayah layer is painted. */
+#reviews{background-image:none}
+#reviews.parent-reviews{--review-ink:#173b2f;--review-copy:#345343;--review-subtle:#4c604e;--review-accent:#6f5624;background-color:#edf5ed;color:var(--review-ink);border-color:var(--bd)}
+#reviews .review-section-heading h2,#reviews .review-invitation h3,#reviews .review-empty-state h4{color:var(--review-ink)}
+#reviews .review-invitation>p,#reviews .review-topics li,#reviews .review-publish-note,#reviews .review-empty-state p,#reviews .review-board-footer{color:var(--review-copy)}
+#reviews .review-eyebrow{color:var(--review-accent)}
+#reviews .review-board{color:var(--review-ink)}
+#reviews .review-board-label{font-size:10px;font-weight:600;color:var(--review-subtle)}
+#reviews .review-empty-rule{color:var(--review-subtle)}
 .review-section-heading{border-color:var(--bd);padding-bottom:20px;margin-bottom:24px}
 .review-eyebrow,.review-section-mark{color:#7c642f}.review-section-heading h2,.review-invitation h3{color:var(--tx)}
 .review-invitation>p,.review-topics li,.review-publish-note{color:var(--mu)}
@@ -231,7 +241,7 @@ html[data-theme=dark] #faq .faq-card{border-color:var(--bd)}
 .review-layout{gap:36px}.review-topics{margin:18px 0;gap:9px}.review-board{box-shadow:0 8px 26px #20482c08}
 .review-empty-state{min-height:180px;padding:22px}.review-empty-icon{width:52px;height:52px;border-radius:16px;margin-bottom:14px}
 .review-write-button{background:#0b7458;border-color:#0b7458;color:#fff;box-shadow:none}.review-write-button:hover{background:#125c44}
-html[data-theme=dark] #reviews.parent-reviews{background-color:#1a4133}
+html[data-theme=dark] #reviews.parent-reviews{--review-ink:#edf8f2;--review-copy:#d4e6d8;--review-subtle:#c9dbcc;--review-accent:#f1ddb0;background-color:#1a4133}
 html[data-theme=dark] .review-eyebrow,html[data-theme=dark] .review-section-mark{color:#ead8a8}
 footer{background:#215e48;color:#e5f5e9;padding-block:36px 24px}footer .w{gap:24px}
 .footer-extra{margin-top:24px;padding-top:18px}
@@ -272,7 +282,7 @@ footer{background:#215e48;color:#e5f5e9;padding-block:36px 24px}footer .w{gap:24
  #packages .pk-m{gap:5px;margin-bottom:12px}#packages .pk-m span{font-size:12px;border-radius:8px;padding:4px 7px}
  #packages .note{font-size:12px;line-height:1.7;margin-top:18px}
  #teachers #tg2{gap:12px;max-width:none}#teachers .tcd{padding:18px;gap:14px 14px}
- #teachers .tcd .pf{margin-top:28px}.teacher-status{margin-bottom:6px}
+ #teachers .tcd .pf{margin-top:0}.teacher-status{margin-bottom:6px}
  #global .gc>.sub{font-size:14px}#global .gf{margin-block:18px;gap:8px}
  #global .gi{gap:10px;padding:10px}#global .gi h4{font-size:14px}#global .gi p{font-size:13px}
  #global .gcs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:14px}
