@@ -16,3 +16,48 @@ test('student snapshots come from authoritative account and private register sup
 test('Dhaka calendar boundary is used for dates',()=>{assert.equal(dhakaToday(new Date('2026-10-18T18:01:00Z')),'2026-10-19');});
 
 test('PDF export rechecks the issued record, enforces admin access and records the requested format',async()=>{const f=fixture(),admin=await f.login();const r=await post(admin,'/receipts',payload());const endpoint='/receipts/'+r.body.id+'/print';assert.equal((await post(admin,endpoint,{format:'PDF'})).status,200);const detail=JSON.parse(f.db.prepare("SELECT detail FROM audit WHERE action='MANUAL_RECEIPT_PRINT_REQUESTED' ORDER BY id DESC LIMIT 1").get().detail);assert.equal(detail.format,'PDF');assert.equal((await post(admin,endpoint,{format:'UNTRUSTED'})).status,400);const student=await f.login('student');assert.equal((await post(student,endpoint,{format:'PDF'})).status,403);await post(admin,'/receipts/'+r.body.id+'/void',{reason:'Synthetic correction reason'});assert.equal((await post(admin,endpoint,{format:'PDF'})).status,409);f.db.close();});
+
+
+test('student receipt copies isolate owners and never infer ownership from a typed name, code or query',async()=>{
+ const f=fixture(),admin=await f.login(),student=await f.login('student');
+ const second=await post(admin,'/users',{name:'Second student',role:'student',password});assert.equal(second.status,201);
+ const other=request.agent(f.app);assert.equal((await post(other,'/login',{identifier:second.body.loginId,password})).status,200);
+ const own=await post(admin,'/receipts',payload({studentId:'student',method:'CASH'}));
+ const theirs=await post(admin,'/receipts',payload({studentId:second.body.id,method:'CASH'}));
+ const unlinked=await post(admin,'/receipts',payload({studentName:'student',studentCode:'AN-2345-6789-ABCD-EFGH',method:'CASH'}));
+ for(const suffix of ['', '?studentId='+second.body.id, '?studentId=student&role=admin&q=%']){
+  const list=await student.get('/api/live/my-receipts'+suffix);assert.equal(list.status,200);assert.equal(list.body.total,1);assert.deepEqual(list.body.items.map(r=>r.id),[own.body.id]);assert.match(list.headers['cache-control'],/no-store/);
+ }
+ for(const id of [theirs.body.id,unlinked.body.id,'missing']){
+  const r=await student.get('/api/live/my-receipts/'+id);assert.equal(r.status,404);assert.deepEqual(r.body,{error:'RECEIPT_NOT_FOUND'});assert.equal((await post(student,'/my-receipts/'+id+'/print',{format:'PDF',studentId:second.body.id,role:'admin'})).status,404);
+ }
+ assert.equal((await other.get('/api/live/my-receipts/'+own.body.id)).status,404);
+ assert.equal((await student.get('/api/live/receipts/'+own.body.id)).status,403);
+ assert.equal((await post(student,'/receipts/'+own.body.id+'/void',{reason:'Forged student attempt'})).status,403);
+ assert.equal((await student.patch('/api/live/my-receipts/'+own.body.id).set('Origin',origin).send({receivedMinor:1})).status,404);f.db.close();
+});
+test('student copies exclude office evidence and require fresh issued status for viewing, PRINT and PDF',async()=>{
+ const f=fixture(),admin=await f.login(),student=await f.login('student');
+ const issued=await post(admin,'/receipts',payload({studentId:'student',amountMode:'CUSTOM',customAmount:'900',receivedAmount:'500',customReason:'Confidential fee approval',evidenceReference:'Private statement line 88'}));assert.equal(issued.status,201);
+ const path='/my-receipts/'+issued.body.id;
+ for(const response of [await student.get('/api/live'+path),await post(student,path+'/print',{format:'PRINT'}),await post(student,path+'/print',{format:'PDF'})]){
+  assert.equal(response.status,200);assert.equal(response.body.receivedMinor,50000);assert.equal(response.body.balanceMinor,40000);
+  for(const key of ['evidenceReference','customReason','studentId','request_key','request_hash','actor_id'])assert.equal(key in response.body,false,key);
+  assert.doesNotMatch(JSON.stringify(response.body),/Private statement|Confidential fee/);assert.match(response.headers['cache-control'],/no-store/);
+ }
+ assert.equal((await student.post('/api/live'+path+'/print').send({format:'PDF'})).status,403);
+ assert.equal((await post(student,path+'/print',{format:'OTHER'})).status,400);
+ const events=f.db.prepare("SELECT detail FROM audit WHERE actor='student' AND action='MANUAL_RECEIPT_COPY_REQUESTED' ORDER BY id").all().map(r=>JSON.parse(r.detail).format);assert.deepEqual(events,['PRINT','PDF']);
+ await post(admin,'/receipts/'+issued.body.id+'/void',{reason:'Synthetic void for copy test'});
+ assert.equal((await student.get('/api/live'+path)).status,404);assert.equal((await post(student,path+'/print',{format:'PDF'})).status,404);assert.equal((await student.get('/api/live/my-receipts')).body.total,0);f.db.close();
+});
+test('student-copy routes deny anonymous, teacher and administrator sessions and revoked student access',async()=>{
+ const f=fixture();for(const role of [null,'teacher','admin']){const a=role?await f.login(role):request(f.app),status=role?403:401;for(const path of ['/my-receipts','/my-receipts/missing'])assert.equal((await a.get('/api/live'+path)).status,status);assert.equal((await post(a,'/my-receipts/missing/print',{format:'PDF'})).status,status);}
+ const student=await f.login('student');f.db.prepare("UPDATE users SET active=0 WHERE id='student'").run();assert.equal((await student.get('/api/live/my-receipts')).status,401);
+ f.db.prepare("UPDATE users SET active=1 WHERE id='student'").run();f.db.prepare('UPDATE sessions SET expires=0').run();assert.equal((await student.get('/api/live/my-receipts')).status,401);f.db.close();
+});
+test('student receipt lists paginate only issued copies for that owner',async()=>{
+ const f=fixture(),admin=await f.login(),student=await f.login('student');
+ for(let i=0;i<23;i++)assert.equal((await post(admin,'/receipts',payload({studentId:'student',method:'CASH'}))).status,201);
+ const first=await student.get('/api/live/my-receipts'),next=await student.get('/api/live/my-receipts?offset=20');assert.equal(first.body.total,23);assert.equal(first.body.items.length,20);assert.equal(next.body.items.length,3);assert.equal(new Set([...first.body.items,...next.body.items].map(r=>r.id)).size,23);assert.equal((await student.get('/api/live/my-receipts?offset=-1')).body.offset,0);f.db.close();
+});

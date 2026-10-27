@@ -10,11 +10,35 @@ export function migrateReceipts(db){
  void_reason TEXT,void_at TEXT,void_actor TEXT REFERENCES users(id));
  CREATE UNIQUE INDEX IF NOT EXISTS manual_receipt_transaction ON manual_receipts(method,transaction_id) WHERE transaction_id IS NOT NULL;
  CREATE INDEX IF NOT EXISTS manual_receipt_date ON manual_receipts(issued_at DESC);
+ CREATE INDEX IF NOT EXISTS manual_receipt_owner ON manual_receipts(json_extract(payload,'$.studentId'),status,issued_at DESC);
  INSERT OR IGNORE INTO schema_versions(version) VALUES(3);`);
 }
 const output=row=>({id:row.id,receiptNumber:row.receipt_number,issuedAt:row.issued_at,issuerName:row.issuer_name,status:row.status,source:'ADMIN_MANUAL',paymentStatus:'CONFIRMED_PAID',...JSON.parse(row.payload),voidReason:row.void_reason,voidAt:row.void_at});
+// Explicit student-copy projection: never return office evidence or custom-fee reasons.
+const copyFields=['id','receiptNumber','issuedAt','issuerName','status','source','paymentStatus','studentName','studentCode','guardianName','phone','feeType','packageId','billingMonth','enrollmentDate','amountMode','description','method','transactionId','paidDate','note','baseMinor','discountMinor','netMinor','receivedMinor','balanceMinor','daysBilled','daysInMonth'];
+const studentCopy=row=>{const record=output(row);return Object.fromEntries(copyFields.map(key=>[key,record[key]]));};
 export function receiptRoutes(app,{db,auth,admin,audit}){
  const get=id=>{const row=db.prepare('SELECT * FROM manual_receipts WHERE id=?').get(id);if(!row)fail(404,'RECEIPT_NOT_FOUND');return row;};
+ const student=(req,res,next)=>{if(req.user.role!=='student')return res.status(403).json({error:'STUDENT_REQUIRED'});next();};
+ const own=(req)=>{
+  // Ownership comes only from the immutable account ID linked by an administrator.
+  // Names, typed student codes and URL/query parameters never grant access.
+  const row=db.prepare("SELECT * FROM manual_receipts WHERE id=? AND status='ISSUED' AND json_extract(payload,'$.studentId')=?").get(req.params.id,req.user.id);
+  if(!row)fail(404,'RECEIPT_NOT_FOUND');return row;
+ };
+ app.get('/api/live/my-receipts',auth,student,(req,res)=>{
+  const offset=Math.max(0,Math.min(100000,Number(req.query.offset)||0))|0;
+  const where="status='ISSUED' AND json_extract(payload,'$.studentId')=?";
+  const total=db.prepare('SELECT COUNT(*) n FROM manual_receipts WHERE '+where).get(req.user.id).n;
+  const items=db.prepare('SELECT * FROM manual_receipts WHERE '+where+' ORDER BY issued_at DESC,id DESC LIMIT 20 OFFSET ?').all(req.user.id,offset).map(row=>{
+   const r=output(row);return {id:r.id,receiptNumber:r.receiptNumber,billingMonth:r.billingMonth,paidDate:r.paidDate,receivedMinor:r.receivedMinor};
+  });res.json({items,total,offset});
+ });
+ app.get('/api/live/my-receipts/:id',auth,student,(req,res)=>res.json(studentCopy(own(req))));
+ app.post('/api/live/my-receipts/:id/print',auth,student,(req,res)=>{
+  const row=own(req),format=req.body?.format??'PRINT';if(!['PRINT','PDF'].includes(format))fail(400,'INVALID_RECEIPT');
+  audit(req.user.id,'MANUAL_RECEIPT_COPY_REQUESTED',null,{receiptId:row.id,format});res.json(studentCopy(row));
+ });
  app.get('/api/live/receipts',auth,admin,(req,res)=>{
   const q=String(req.query.q||'').trim().slice(0,100),offset=Math.max(0,Math.min(100000,Number(req.query.offset)||0))|0;
   const pattern='%'+q.replace(/[\\%_]/g,'\\$&')+'%';

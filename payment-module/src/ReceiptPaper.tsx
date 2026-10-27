@@ -1,7 +1,7 @@
 import React from 'react';
 import {amountWords,type Amounts} from '../../shared/receipt-core.mjs';
-import {type Draft,type Issued,type Lang,feeLabels,methodLabels,packageLabels,money,calendar} from './receipt-types';
-export default function ReceiptPaper({draft,totals,record,lang}:{draft:Draft;totals:Amounts|null;record:Issued|null;lang:Lang}){
+import {type Draft,type ReceiptCopy,type Lang,feeLabels,methodLabels,packageLabels,money,calendar} from './receipt-types';
+export default function ReceiptPaper({draft,totals,record,lang}:{draft:Draft|ReceiptCopy;totals:Amounts|null;record:ReceiptCopy|null;lang:Lang}){
  const t=(bn:string,en:string)=>lang==='bn'?bn:en,d=record||draft,a=record||totals,final=!!record&&record.status==='ISSUED';
  const label=(map:Record<string,[string,string]>,key:string)=>map[key]?.[lang==='bn'?0:1]||'—';
  return <article className={'receipt-paper '+(!final?'is-draft':'')} aria-label={t('রসিদের প্রিভিউ','Receipt preview')}>

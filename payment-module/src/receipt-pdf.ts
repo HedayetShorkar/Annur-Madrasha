@@ -1,10 +1,10 @@
 import {PDFDocument} from 'pdf-lib';
 import {amountWords} from '../../shared/receipt-core.mjs';
-import {calendar,feeLabels,methodLabels,money,packageLabels,type Issued,type Lang} from './receipt-types';
+import {calendar,feeLabels,methodLabels,money,packageLabels,type ReceiptCopy,type Lang} from './receipt-types';
 
 // The caller must obtain this snapshot from the authenticated print endpoint.
 // Browser rendering preserves Bengali shaping; no receipt data leaves the device.
-export function receiptPdfData(record:Issued,lang:Lang){
+export function receiptPdfData(record:ReceiptCopy,lang:Lang){
  const r=record,t=(bn:string,en:string)=>lang==='bn'?bn:en;
  if(r.status!=='ISSUED'||r.paymentStatus!=='CONFIRMED_PAID'||r.source!=='ADMIN_MANUAL'||!r.id||!/^AN-R-\d{4}-\d{6,}$/.test(r.receiptNumber))throw Error('PDF_NOT_CONFIRMED');
  if(![r.baseMinor,r.discountMinor,r.netMinor,r.receivedMinor,r.balanceMinor].every(Number.isSafeInteger)||r.baseMinor<=0||r.discountMinor<0||r.receivedMinor<=0||r.balanceMinor<0||r.baseMinor-r.discountMinor!==r.netMinor||r.receivedMinor+r.balanceMinor!==r.netMinor)throw Error('PDF_INVALID_RECEIPT');
@@ -47,7 +47,7 @@ export function wrapReceiptText(ctx:Pick<CanvasRenderingContext2D,'measureText'>
 }
 function logo():Promise<HTMLImageElement>{return new Promise((resolve,reject)=>{const img=new Image(),timer=setTimeout(()=>reject(Error('PDF_IMAGE_UNAVAILABLE')),10000);img.onload=()=>{clearTimeout(timer);resolve(img);};img.onerror=()=>{clearTimeout(timer);reject(Error('PDF_IMAGE_UNAVAILABLE'));};img.src=new URL('../assets/images/brand-asset-1.webp',location.href).href;});}
 
-export async function createReceiptPdf(record:Issued,lang:Lang):Promise<Blob>{
+export async function createReceiptPdf(record:ReceiptCopy,lang:Lang):Promise<Blob>{
  const data=receiptPdfData(record,lang);await loadReceiptFont();const image=await logo();
  const width=760,padding=40,inner=width-padding*2,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(!ctx)throw Error('PDF_UNAVAILABLE');
  const ink='#1d3c30',green='#0b5c43',muted='#526d5e',line='#d7e5db',gold='#c2a365';

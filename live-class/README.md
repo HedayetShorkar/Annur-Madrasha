@@ -6,6 +6,8 @@ The supplied code under `reference/` remains unchanged as recovery/reference mat
 
 **Provider differences:** Jitsi IFrame handles in-room moderation and visible silent previews. Without an additional trusted provider integration, server room metrics, forced media disconnection and verified attendance are unavailable; the dashboard says so. LiveKit retains its existing server-side controls and sampled attendance. Classroom accounts remain separate from the Supabase admission office.
 
+The receipt-management desk is visible only to an authenticated administrator. Students instead have an **আমার রসিদ** link for read-only issued receipts linked to their exact account; teachers have neither desk nor receipt-copy access. Deploy the updated receipt handler and rebuilt `live/`/`payments/` together. See [receipt access and delivery](../docs/OPERATIONS.md#manual-receipts-printing-and-pdf).
+
 ## Existing LiveKit workflows (when VIDEO_PROVIDER=livekit)
 
 - Administrator creates teacher/student accounts, schedules classes and assigns students.

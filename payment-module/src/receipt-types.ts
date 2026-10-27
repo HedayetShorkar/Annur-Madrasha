@@ -3,6 +3,7 @@ export type Lang='bn'|'en';
 export type Draft={studentId:string;studentName:string;studentCode:string;guardianName:string;phone:string;feeType:string;packageId:string;billingMonth:string;enrollmentDate:string;amountMode:string;customAmount:string;customReason:string;description:string;discount:string;receivedAmount:string;method:string;transactionId:string;paidDate:string;note:string;evidenceReference:string};
 export type User={id:string;name:string;role:string;loginId?:string;active?:boolean};
 export type Issued=Draft&Amounts&{id:string;receiptNumber:string;issuedAt:string;issuerName:string;status:'ISSUED'|'VOID';paymentStatus:'CONFIRMED_PAID';source:'ADMIN_MANUAL';voidReason?:string};
+export type ReceiptCopy=Omit<Issued,'studentId'|'customAmount'|'customReason'|'discount'|'receivedAmount'|'evidenceReference'|'voidReason'>;
 export type Page={items:Issued[];total:number;offset:number};
 export const feeLabels:Record<string,[string,string]>={MONTHLY:['মাসিক বেতন','Monthly tuition'],FIRST_MONTH:['প্রথম মাসের বেতন','First-month tuition'],ADMISSION:['ভর্তি ফি','Admission fee'],OTHER:['অন্যান্য ফি','Other fee']};
 export const methodLabels:Record<string,[string,string]>={CASH:['নগদ অর্থ','Cash'],BKASH:['বিকাশ','bKash'],NAGAD:['নগদ','Nagad'],ROCKET:['রকেট','Rocket'],BANK:['ব্যাংক','Bank']};

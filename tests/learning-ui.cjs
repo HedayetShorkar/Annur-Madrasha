@@ -40,7 +40,7 @@ function fixture(role,{disk=false,denied=false,heartbeatFails=false}={}){
 }
 async function learning(){
  for(const role of ['student','teacher','admin']){
-  const f=fixture(role);await until(()=>f.d.querySelector('.classes'));
+  const f=fixture(role);await until(()=>f.d.querySelector('.classes article'));
   assert.equal(f.captures.length,0);f.click('পড়াশোনা ও অগ্রগতি');await until(()=>f.d.querySelector('.lesson-overview'));
   if(role==='student')assert.match(f.d.body.textContent,/মাখরাজ/);else assert.equal(f.d.querySelector('[name="topic"]').value,'মাখরাজ');assert.match(f.d.body.textContent,/ভিডিও সার্ভারের যাচাইকৃত হাজিরা নয়/);
   if(role==='student'){assert.equal(f.d.querySelectorAll('.learning-content form').length,0);assert.match(f.d.body.textContent,/মূল্যায়ন দিলে/);}
@@ -55,7 +55,7 @@ async function learning(){
 }
 async function recording(){
  for(const disk of [false,true]){
-  const f=fixture('teacher',{disk});await until(()=>f.d.querySelector('.classes'));f.click('ক্লাসে যোগ দিন');await until(()=>f.d.querySelector('.recording-panel'));
+  const f=fixture('teacher',{disk});await until(()=>f.d.querySelector('.classes article'));f.click('ক্লাসে যোগ দিন');await until(()=>f.d.querySelector('.recording-panel'));
   assert.equal(f.captures.length,0);assert.equal(f.recorders.length,0);
   if(disk){f.click('১. ফাইলের জায়গা বাছুন');await until(()=>f.d.body.textContent.includes('Selected-record.webm'));assert.equal(f.captures.length,0);}
   f.click(disk?'২. রেকর্ডিং শুরু':'রেকর্ডিং শুরু · ডাউনলোড মোড');await until(()=>f.d.querySelector('.recording-timer'));
@@ -65,9 +65,9 @@ async function recording(){
   else{const link=f.d.querySelector('.recording-result a');assert.ok(link.download.endsWith('.webm'));assert.ok(link.href.startsWith('blob:'));f.click('লগআউট');await pause();assert.ok(!f.requests.some(r=>r.url==='/api/live/logout'));link.addEventListener('click',e=>e.preventDefault());link.click();f.click('লগআউট');await until(()=>f.requests.some(r=>r.url==='/api/live/logout'));}
   assert.ok(f.requests.some(r=>r.body?.action==='stop'));assert.ok(!f.requests.some(r=>r.url.includes('upload')));assert.equal(f.w.localStorage.length,0);assert.deepEqual(f.errors,[]);f.dom.window.close();
  }
- const student=fixture('student');await until(()=>student.d.querySelector('.classes'));student.click('ক্লাসে যোগ দিন');await until(()=>student.d.querySelector('.classroom'));assert.equal(student.d.querySelector('.recording-panel'),null);assert.equal(student.captures.length,0);student.dom.window.close();
- const fail=fixture('teacher',{heartbeatFails:true});await until(()=>fail.d.querySelector('.classes'));fail.click('ক্লাসে যোগ দিন');await until(()=>fail.d.querySelector('.recording-panel'));fail.click('রেকর্ডিং শুরু · ডাউনলোড মোড');await until(()=>fail.d.querySelector('.recording-timer'));const heartbeat=fail.intervals.find(x=>x.ms===15000&&x.active);assert.ok(heartbeat);await heartbeat.fn();await until(()=>fail.d.querySelector('.recording-result'));assert.equal(fail.recorders[0].state,'inactive');assert.match(fail.d.body.textContent,/নোটিশ সার্ভারে নিশ্চিত করা যায়নি/);fail.dom.window.close();
- const denied=fixture('teacher',{denied:true});await until(()=>denied.d.querySelector('.classes'));denied.click('ক্লাসে যোগ দিন');await until(()=>denied.d.querySelector('.recording-panel'));denied.click('রেকর্ডিং শুরু · ডাউনলোড মোড');await pause();assert.equal(denied.requests.some(r=>r.body?.action==='start'),false);assert.equal(denied.recorders.length,0);denied.dom.window.close();
+ const student=fixture('student');await until(()=>student.d.querySelector('.classes article'));student.click('ক্লাসে যোগ দিন');await until(()=>student.d.querySelector('.classroom'));assert.equal(student.d.querySelector('.recording-panel'),null);assert.equal(student.captures.length,0);student.dom.window.close();
+ const fail=fixture('teacher',{heartbeatFails:true});await until(()=>fail.d.querySelector('.classes article'));fail.click('ক্লাসে যোগ দিন');await until(()=>fail.d.querySelector('.recording-panel'));fail.click('রেকর্ডিং শুরু · ডাউনলোড মোড');await until(()=>fail.d.querySelector('.recording-timer'));const heartbeat=fail.intervals.find(x=>x.ms===15000&&x.active);assert.ok(heartbeat);await heartbeat.fn();await until(()=>fail.d.querySelector('.recording-result'));assert.equal(fail.recorders[0].state,'inactive');assert.match(fail.d.body.textContent,/নোটিশ সার্ভারে নিশ্চিত করা যায়নি/);fail.dom.window.close();
+ const denied=fixture('teacher',{denied:true});await until(()=>denied.d.querySelector('.classes article'));denied.click('ক্লাসে যোগ দিন');await until(()=>denied.d.querySelector('.recording-panel'));denied.click('রেকর্ডিং শুরু · ডাউনলোড মোড');await pause();assert.equal(denied.requests.some(r=>r.body?.action==='start'),false);assert.equal(denied.recorders.length,0);denied.dom.window.close();
 }
 module.exports={fixture,until};
 if(require.main===module)(async()=>{await learning();await recording();console.log('PASS: compiled lesson/report workflows, student read-only view, explicit staff-only local recording, file/download modes, stop on classroom exit, heartbeat failure and permission cancellation; no uploads or private browser storage.');})().catch(e=>{console.error(e);process.exitCode=1;});

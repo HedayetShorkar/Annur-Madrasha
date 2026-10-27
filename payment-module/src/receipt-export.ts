@@ -1,5 +1,5 @@
-import type {Issued,Lang} from './receipt-types';
-type Renderer={createReceiptPdf:(record:Issued,lang:Lang)=>Promise<Blob>};
+import type {ReceiptCopy,Lang} from './receipt-types';
+type Renderer={createReceiptPdf:(record:ReceiptCopy,lang:Lang)=>Promise<Blob>};
 declare global{interface Window{AnNoorReceiptPdf?:Renderer}}
 let loading:Promise<Renderer>|null=null;
 function renderer():Promise<Renderer>{
@@ -13,7 +13,7 @@ function renderer():Promise<Renderer>{
   script.onerror=fail;script.onload=()=>{clearTimeout(timer);if(window.AnNoorReceiptPdf)resolve(window.AnNoorReceiptPdf);else fail();};document.head.append(script);
  }).catch(error=>{loading=null;throw error;});return loading;
 }
-export async function createReceiptPdf(record:Issued,lang:Lang){return(await renderer()).createReceiptPdf(record,lang);}
+export async function createReceiptPdf(record:ReceiptCopy,lang:Lang){return(await renderer()).createReceiptPdf(record,lang);}
 export function downloadReceiptPdf(blob:Blob,number:string){
  const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=number.replace(/[^A-Z0-9-]/gi,'')+'.pdf';a.href=url;a.download=filename;a.rel='noopener';document.body.append(a);a.click();a.remove();return{url,filename};
 }
