@@ -63,6 +63,7 @@ export function receiptRoutes(app,{db,auth,admin,audit}){
  });
  app.post('/api/live/receipts/:id/print',auth,admin,(req,res)=>{
   const row=get(req.params.id);if(row.status!=='ISSUED')fail(409,'RECEIPT_VOID');
-  audit(req.user.id,'MANUAL_RECEIPT_PRINT_REQUESTED',null,{receiptId:row.id});res.json(output(row));
+  const format=req.body?.format??'PRINT';if(!['PRINT','PDF'].includes(format))fail(400,'INVALID_RECEIPT');
+  audit(req.user.id,'MANUAL_RECEIPT_PRINT_REQUESTED',null,{receiptId:row.id,format});res.json(output(row));
  });
 }

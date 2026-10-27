@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build && node scripts/portable-build.mjs",
+    "build": "tsc --noEmit && vite build && vite build --config vite.pdf.config.ts && node scripts/portable-build.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:postgres": "node --import tsx --test tests/postgres.integration.ts",
     "check:edge": "tsc --noEmit -p tsconfig.edge.json"

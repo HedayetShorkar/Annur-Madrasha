@@ -10,3 +10,9 @@ export const packageLabels:Record<string,string>={basic:'Basic',standard:'Standa
 export const initial=():Draft=>({studentId:'',studentName:'',studentCode:'',guardianName:'',phone:'',feeType:'MONTHLY',packageId:'basic',billingMonth:dhakaToday().slice(0,7),enrollmentDate:dhakaToday(),amountMode:'PACKAGE',customAmount:'999',customReason:'',description:'',discount:'0',receivedAmount:'999',method:'CASH',transactionId:'',paidDate:dhakaToday(),note:'',evidenceReference:''});
 export const money=(n:number,lang:Lang)=>new Intl.NumberFormat(lang==='bn'?'bn-BD':'en-BD',{style:'currency',currency:'BDT',minimumFractionDigits:2}).format(n/100);
 export const calendar=(s:string,lang:Lang,month=false)=>s?new Date(s+(month?'-01':'')+'T12:00:00Z').toLocaleDateString(lang==='bn'?'bn-BD':'en-GB',month?{month:'long',year:'numeric',timeZone:'Asia/Dhaka'}:{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Dhaka'}):'—';
+
+export function newReceiptKey(){
+ if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+ if(!globalThis.crypto?.getRandomValues)throw Error('REQUEST_FAILED');
+ const bytes=new Uint8Array(16);globalThis.crypto.getRandomValues(bytes);bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const s=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return [s.slice(0,8),s.slice(8,12),s.slice(12,16),s.slice(16,20),s.slice(20)].join('-');
+}

@@ -1,6 +1,6 @@
 # An-Noor — Receipt desk + future online payments
 
-The default built page now opens the branded, editable receipt desk at **`payments/index.html`**, including from `file://`. See **`../RECEIPT_DESK_UPDATE.md`** for its current UI, manual admin verification, SQLite receipt registry and printing workflow. The receipt desk reuses the existing Node classroom administrator account; media credentials and Supabase are not required for this manual workflow. Run the Node service and proxy `/api/live/` on the same origin to issue real receipts. Offline visitors can edit only an unconfirmed draft.
+The default built page opens the premium manual receipt workspace at **`payments/index.html`**, including draft previews from `file://`. See [current operations](../docs/OPERATIONS.md#manual-receipts-printing-and-pdf) for manual entry, administrator verification, the SQLite receipt registry, A4 printing and bilingual PDF downloads. The desk reuses the existing Node classroom administrator account; media credentials and Supabase are not required for manual receipts. Run the Node service and proxy `/api/live/` on the same HTTPS origin to issue real receipts. Offline visitors can edit only an unconfirmed draft.
 
 Online payment collection remains disabled (`VITE_ENABLE_ONLINE_PAYMENTS=false`). The original gateway page is preserved in `src/GatewayPortal.tsx`; the sections below describe that future Supabase subsystem. Before activating it, reconcile/migrate existing manual receipt claims into a single authoritative ledger. The two backends do not automatically synchronize claims or accounts.
 
@@ -18,11 +18,12 @@ Production-oriented source implementation; **not a live or independently audited
 
 ## Existing-site integration
 
-The static site, ages 5–18, translations, Quran backgrounds, logo/clock animation, themes and FAQ remain. Explore and footer links open `payments/index.html` explicitly. The portal is built with React, TypeScript and Tailwind; the future online subsystem uses Supabase. `npm run build` writes portable relative, classic-script output into `../payments/` without overwriting the homepage/assets. File previews support draft editing only; authenticated receipt issuing and online APIs require HTTP(S). Actual admission submission remains unconnected.
+The static site, ages 5–18, translations, Quran backgrounds, logo/clock animation, themes and FAQ remain. Explore and footer links open `payments/index.html` explicitly. The portal uses React, TypeScript and Tailwind; the future online subsystem uses Supabase. `npm run build` produces the main page and a separate fingerprinted classic-script PDF renderer in `../payments/`, then records the renderer path in the HTML. Deploy the whole built folder together. The original website/assets stay intact; the new `assets/fonts/` includes an unmodified Noto Sans Bengali font and its SIL Open Font License. The font and PDF renderer load only for export. File previews support draft editing only; authenticated issuing requires HTTP(S). Admissions have their separate deployed Supabase endpoint.
 
 Source layout:
 
 - `src/main.tsx`, `ReceiptDesk.tsx`, `ReceiptPaper.tsx`: bilingual receipt editor, preview and admin issue/print/register workflows.
+- `src/receipt-export.ts`, `src/receipt-pdf.ts`, `vite.pdf.config.ts`: lazy, local PDF export from a fresh issued record. Canvas preserves Bengali shaping; PDF pages contain a high-resolution receipt image. Use browser Print/Save as PDF when selectable text is needed.
 - `src/GatewayPortal.tsx`: preserved online payer and finance-admin workflows, real Supabase email/password auth, no fake login.
 - `src/style.css`, `vite.config.ts`: responsive white/dark/green Tailwind styling and isolated output.
 - `supabase/migrations/202610150001_payments.sql`: ledger, RLS, service-only functions, locks, audit and receipts.

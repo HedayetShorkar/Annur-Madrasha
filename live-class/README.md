@@ -92,7 +92,7 @@ The same authenticated administrator session now authorizes the receipt desk at 
 
 `server/receipts.js` and the adjacent `../shared/receipt-core.mjs` add schema version 3, admin-only issuing/register/printing/voiding, integer money calculations, atomic receipt sequences, idempotency keys, unique provider/transaction references and audits. Keep **both** private `live-class/` and `shared/` on the server and back up the SQLite database before upgrading. Existing users, permanent IDs, classes and sessions are preserved.
 
-Read `../RECEIPT_DESK_UPDATE.md` for the office workflow, deployment requirements and boundaries. Online collection stays disabled. These manual receipts do not automatically synchronize with the future Supabase ledger; consolidate the claim stores before enabling online collection.
+Read [the office workflow](../docs/OPERATIONS.md#manual-receipts-printing-and-pdf) for manual entry, separate print/PDF actions, deployment and boundaries. The existing print endpoint revalidates issued status for both formats and audits `PRINT` or `PDF`; voided records cannot be newly exported. Online collection stays disabled. These manual receipts do not automatically synchronize with the future Supabase ledger; consolidate the claim stores before enabling online collection.
 
 ## Learning records and local recording
 
