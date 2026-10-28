@@ -30,5 +30,9 @@ const ts=require('../payment-module/node_modules/typescript');
  assert.equal((await handler(new Request('https://project.test/functions/v1/admissions/review-submit',{method:'OPTIONS'}))).status,204);
  const admission={request_id:crypto.randomUUID(),student_name:'Synthetic',gender:'boy',age:10,address:'Test city',level:'Noorani Qaida',hifz:'',guardian_name:'Synthetic guardian',relationship:'father',phone:'+8801700000000',email:'',plan:'Basic',start_date:'2026-10-26',availability:{mode:'flexible'},notes:'',consent:true,language:'bn'};
  assert.equal((await request('submit',admission)).status,200);assert.equal(rpcCalls.at(-1).name,'annoor_submit_admission');
+ const decision={id,status:'IN_REVIEW',expected_status:'SUBMITTED',reason:'Synthetic admission review'};
+ assert.equal((await request('decide',decision,'valid')).status,200);
+ for(const patch of [{expected_status:null},{expected_status:undefined},{expected_status:'BAD'},{status:'BAD'},{id:undefined},{reason:'x'},{actor:other}]){const before=rpcCalls.length;assert.equal((await request('decide',{...decision,...patch},'valid')).status,400);assert.equal(rpcCalls.length,before);}
+ for(const body of [{offset:-1},{offset:1.5},{status:'BAD'},{actor:other}])assert.equal((await request('list',body,'valid')).status,400);
  console.log('PASS: Edge public validation/whitelists, safe response and HMAC source, no client approval, admin Auth and role checks, forged/anonymous denial, body limits and legacy admissions.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -24,35 +24,21 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Detect application source changes
-        id: changes
-        env:
-          PREVIOUS_COMMIT: ${{ github.event.before }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          python3 - <<'PY'
-          import os, subprocess
-          before = os.environ.get('PREVIOUS_COMMIT', '')
-          all_apps = os.environ['EVENT_NAME'] == 'workflow_dispatch' or not before.strip('0')
-          paths = [] if all_apps else subprocess.check_output(['git', 'diff', '--name-only', before, 'HEAD']).decode().splitlines()
-          shared = all_apps or any(p.startswith(('shared/', '.github/workflows/')) for p in paths)
-          live = shared or any(p.startswith('live-class/') for p in paths)
-          payments = shared or any(p.startswith('payment-module/') for p in paths)
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write(f'live={str(live).lower()}\npayments={str(payments).lower()}\n')
-          PY
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        if: steps.changes.outputs.live == 'true' || steps.changes.outputs.payments == 'true'
         with:
-          node-version: '24.19.0'
-      - name: Build live classroom
-        if: steps.changes.outputs.live == 'true'
+          node-version: '24.22.1'
+      - name: Install locked validation dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install locked classroom dependencies
         working-directory: live-class
-        run: npm ci --no-audit --no-fund && npm run build
-      - name: Build receipt interface
-        if: steps.changes.outputs.payments == 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Install locked receipt dependencies
         working-directory: payment-module
-        run: npm ci --no-audit --no-fund && npm run build
+        run: npm ci --no-audit --no-fund
+      - name: Build both public applications
+        run: npm run build
+      - name: Validate security, data preservation and website behavior
+        run: npm run check
       - name: Stage the generated applications
         run: git add -A -- live/ payments/
       - name: Import or build the complete ZIP

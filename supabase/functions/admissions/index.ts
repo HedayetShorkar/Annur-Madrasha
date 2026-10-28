@@ -53,6 +53,12 @@ Deno.serve(async(req:Request)=>{
   }
   const engagement=/^(trial|review)-(list|decide|audit)$/.exec(route||'');
   if(!['list','decide','audit'].includes(route||'')&&!engagement)return reply({error:'NOT_FOUND'},404);
+  if(!engagement){
+   const fields=route==='list'?['status','offset']:route==='audit'?['id']:['id','status','expected_status','reason'];
+   if(Object.keys(b).some(k=>!fields.includes(k))||route!=='list'&&!uuid(b.id))return reply({error:'INVALID_DATA'},400);
+   if(route==='list'&&(b.status!==undefined&&!['','SUBMITTED','IN_REVIEW','APPROVED','REJECTED'].includes(b.status)||b.offset!==undefined&&(!Number.isSafeInteger(b.offset)||b.offset<0||b.offset>10000)))return reply({error:'INVALID_DATA'},400);
+   if(route==='decide'&&(!['IN_REVIEW','APPROVED','REJECTED'].includes(b.status)||!['SUBMITTED','IN_REVIEW','APPROVED','REJECTED'].includes(b.expected_status)||typeof b.reason!=='string'||b.reason.trim().length<5||b.reason.length>1000))return reply({error:'INVALID_DATA'},400);
+  }
   if(engagement){
    const action=engagement[2],fields=action==='list'?['status','offset']:action==='audit'?['id']:['id','status','expected_version','reason'];
    if(Object.keys(b).some(k=>!fields.includes(k))||action!=='list'&&!uuid(b.id)||action==='decide'&&(!Number.isInteger(b.expected_version)||b.expected_version<1||typeof b.reason!=='string'||b.reason.trim().length<5||b.reason.length>1000))return reply({error:'INVALID_DATA'},400);

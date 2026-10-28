@@ -8,6 +8,8 @@ The supplied code under `reference/` remains unchanged as recovery/reference mat
 
 The receipt-management desk is visible only to an authenticated administrator. Students instead have an **আমার রসিদ** link for read-only issued receipts linked to their exact account; teachers have neither desk nor receipt-copy access. Deploy the updated receipt handler and rebuilt `live/`/`payments/` together. See [receipt access and delivery](../docs/OPERATIONS.md#manual-receipts-printing-and-pdf).
 
+Current startup safety: production requires an existing absolute `DB_PATH` outside source/public/release folders. Before applying startup migrations, the service automatically creates and verifies a private online SQLite backup in `DB_BACKUP_DIR` (default: `backups/` beside the database). Bootstrap remains an explicit first-install action. Ship the full `live-class/` folder, including `scripts/db-backup.mjs`, and its adjacent `shared/` module. Missing/empty databases and unsupported schema downgrades fail safely. Follow [safe upgrades and backups](../docs/OPERATIONS.md#safe-updates-backups-and-security-review).
+
 ## Existing LiveKit workflows (when VIDEO_PROVIDER=livekit)
 
 - Administrator creates teacher/student accounts, schedules classes and assigns students.

@@ -2,6 +2,70 @@
 
 The separate `annoor-madrasa` Supabase project (`jbmxquvgrekyapcoezmh`) stores admissions, free-trial requests and moderated guardian feedback. The examination-board project is untouched.
 
+
+## Safe updates, backups and security review
+
+Reviewed 28 October 2026. This is a scoped code/dependency/database review and automated regression suite, not an independent penetration test, an uptime guarantee or a production disaster-recovery certification. No real applicant/payment record was created during verification.
+
+### Findings and fixes
+
+- The Node dependency audit initially reported three high-level dependency findings. `express-rate-limit` is now pinned to 8.7.1, its locked `ip-address` resolves to 10.7.5, and `body-parser` resolves to 2.4.0. Compressed JSON request bodies are explicitly refused before decompression. Subsequent full npm audits of the root checks, classroom and payment projects reported zero known advisories at review time; this is a dated registry result, not proof against unknown vulnerabilities. References: [body-parser advisory](https://github.com/advisories/GHSA-27r3-jxmh-p828), [rate-limit advisory](https://github.com/advisories/GHSA-46wh-pxpv-q5gq).
+- Admission decisions previously allowed a missing expected status to evade the SQL stale-state comparison because SQL NULL comparisons do not return true. The new function-only migration requires a recognized expected status and uses `IS DISTINCT FROM`. Edge routes also require valid IDs/actions/reasons, reject extra actor/status fields and validate list offsets. Existing approved records remain terminal, audit entries remain immutable, and no stored application/account/audit row is removed. Migration history matches the actual applied version `20261028015040_harden_admission_review.sql`. The existing admissions Edge Function was updated from native deployment version 3 to 4 with its public-intake setting preserved; protected routes still verify Auth and the server-owned administrator table. Hosted invalid-data/forged-token probes passed without submitting records.
+- The classroom API now rechecks current sessions, roles and roster access after slow media-provider calls. A session/role revoked during token signing cannot receive its old moderator token; revoked staff cannot perform a late start/mute change; a blocked student cannot receive a stale class list. Existing receipt roles, sender evidence rules, server totals, unique transaction claims and manual verification remain intact.
+- Production startup refuses missing/empty/relative databases, source/public/release locations and symlinked DB files. Explicit first-install bootstrap is the only production path allowed to create a database. New database files are private (0600); new data directories are 0700. An unsupported newer schema fails before migrations, so an incompatible old binary cannot silently mutate it.
+- Public staging uses an allowlist, rejects symlinks/private database/key/archive files, and never copies runtime data or the source ZIP. Release manifests verify file hashes before activation, including bundles retained from the current release. CI checks public text assets for privileged key/JWT leakage. Browser-facing publishable keys remain intentionally public.
+
+The connected Supabase catalog was checked directly: all six public application tables have RLS enabled; application RPCs are SECURITY INVOKER, unavailable to anon/authenticated, and callable only through the trusted service role. Seven **INFO** notices for RLS without policies are intentional default-deny tables, not public-read policies; do not grant a permissive policy just to silence them. [Supabase explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy). Five unused-index INFO notices were retained because this is a new service and they support intended queries. Private office data still passes only through authenticated server routes. The first admissions-office administrator is still an owner-provided account setup, separate from Node classroom administrators. MFA/recovery, production anti-abuse tuning, media capacity and real Android/iOS acceptance remain operational work; no default administrator was invented.
+
+### Reproducible release checks
+
+From the repository root, install all three locked projects, build and test:
+
+```bash
+npm ci
+npm --prefix live-class ci
+npm --prefix payment-module ci
+npm run build
+npm run check
+```
+
+`npm run check` covers the Node classroom/receipt/backup tests, the future gateway's PostgreSQL/SMS/auth/PDF tests, Edge TypeScript checks, public secret scan, three static release tests, 18 existing root integration scripts and structural/original-artwork checks. `tests/engagement-hosted.cjs` is a separate read-only/invalid-request production probe, excluded from routine CI. The package Action runs locked installation → both builds → all checks → ZIP; a failure prevents a new package. It still does **not** deploy a production site. Configure the eventual host to publish only after the same checks pass; do not let a separate unchecked push-to-main deployment bypass them.
+
+### Production database backups
+
+Keep the existing DB path stable, e.g. `/var/lib/annoor-live/live.sqlite`. Put real configuration in `/etc/annoor/live.env` outside Git and the public website. Existing production instructions already use this absolute path. If an older installation used a code-folder DB, stop the single API and migrate it once using a verified SQLite backup; do not point at a new empty file or re-bootstrap its students.
+
+Every **production Node startup** first takes a supported online backup and validates its SQLite integrity, foreign keys and SHA256 before opening/migrating the working DB. A failed backup aborts startup. `DB_BACKUP_DIR` optionally selects an absolute private directory; by default it is `backups/` beside the database. The example systemd write permission covers `/var/lib/annoor-live`; grant appropriate private write permission when using another backup location. This backup can add startup time and cannot itself provide zero-downtime API restarts.
+
+An operator can also create/verify a backup explicitly, without copying an incomplete WAL file:
+
+```bash
+node live-class/scripts/db-backup.mjs create /var/lib/annoor-live/live.sqlite /var/lib/annoor-live/backups/before-update.sqlite
+node live-class/scripts/db-backup.mjs verify /var/lib/annoor-live/backups/before-update.sqlite
+```
+
+Choose a **new** backup filename each time. Existing files are never overwritten. Backup files and their checksum/schema-version manifests are private and contain sensitive operational data; keep them outside the checkout, release root and public tree. No automatic deletion/retention is enabled. Monitor disk space and configure institution-approved retention plus encrypted off-server copies on the actual host. Same-disk snapshots do not protect against disk/server loss. For a restoration drill, verify the snapshot, copy it into an isolated private test location and open the copy; never test by overwriting the live DB or the original snapshot. Tests preserve permanent IDs, password hashes, sessions and actual manual-receipt rows across snapshots/restarts, and show that records written after a snapshot survive **code** rollback.
+
+Supabase PostgreSQL is a separate store: this SQLite helper does not back up admissions/Auth/Storage. Configure verified Supabase backups/PITR or a secured external dump/restore process appropriate to the selected plan before substantive data migrations. Use new additive migrations, test on existing fixtures, and retain the applied history. Never run reset/include-seed on production. The deployed fix in this review replaced only one function and preserved all tables and permissions; its prior function/Edge source is in the preceding Git commit. [Supabase migration guidance](https://supabase.com/docs/guides/deployment/database-migrations) and [backup guidance](https://supabase.com/docs/guides/platform/backups).
+
+### Atomic static updates and rollback
+
+For the existing Nginx template, `/srv/annoor/public` can be a managed symlink to a prepared release under `/srv/annoor/releases/`. After the actual host is configured once, use the tested helper from a verified checkout:
+
+```bash
+node scripts/release-public.mjs prepare /srv/annoor RELEASE_ID
+node scripts/release-public.mjs activate /srv/annoor RELEASE_ID
+node scripts/release-public.mjs status /srv/annoor
+node scripts/release-public.mjs rollback /srv/annoor
+```
+
+Use a fresh ID such as the tested commit SHA. Preparation copies only public files, verifies hashes and keeps prior fingerprinted JS/CSS for already-open tabs. Activation atomically renames the public symlink; it refuses unmanaged old directories/pointers, modified bundles, incomplete files and simultaneous release actions. Nginx revalidates public/private HTML and keeps immutable caching only for fingerprinted bundles. Rollback creates a new release containing the prior public code and current cached bundles, then switches the pointer; it never opens/restores a DB. Releases, old bundles and backups are not automatically pruned. If a process dies holding `.release-lock`, verify no publisher is active before an operator removes that stale lock.
+
+For an existing legacy real `/srv/annoor/public` directory, do a planned one-time conversion to managed releases; the helper deliberately refuses to replace/delete it. For GitHub Pages, Netlify, Vercel or another host, use that provider's supported atomic artifact deployment/rollback with the same tests and API compatibility rules instead of running this Linux helper. The host/domain/credentials are not yet connected here, so no production static release or Node restart was performed. Existing media credentials, IDs, data, ages, schedules, fees, UI and artwork were preserved.
+
+Backend changes are separate from static publishing: make a verified backup, install locked dependencies in a new private code release, keep `/etc/annoor/live.env` and the external DB path unchanged, deploy compatible API/schema changes first, then the frontend, and verify health plus role-isolated canary actions. A single Node process can have a brief restart gap. Only roll back code compatible with the current schema; do not restore an old database to undo a visual or code bug because that would discard newer applications/payments. Destructive schema changes require a separate staged migration/restore plan. Production monitoring, host access, encrypted off-server copies and recovery drills must be configured once before fully unattended live updates can be claimed.
+
+
 ## Using the pages
 
 Publish only `index.html`, `assets/`, `learn/`, `robots.txt`, `404.html`, the generated `sitemap.xml` when configured, `live/`, `payments/` and `admin/` on the website's HTTPS host. Never serve the entire source repository, backups, ZIP or private server folders. No website host was deployed in this update. The existing staging script includes `admin/`.

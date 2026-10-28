@@ -28,9 +28,9 @@ location /api/live/ {
     client_max_body_size 32k;
 }
 location = /live { return 308 /live/; }
-location /live/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ /live/index.html; }
-location /payments/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
-location /admin/ { add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
+location /live/ { add_header Cache-Control "no-cache"; add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ /live/index.html; }
+location /payments/ { add_header Cache-Control "no-cache"; add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
+location /admin/ { add_header Cache-Control "no-cache"; add_header X-Robots-Tag "noindex,nofollow" always; try_files $uri $uri/ =404; }
 location / { add_header Cache-Control "no-cache"; try_files $uri $uri/ =404; }
 # Only stage the public release; never serve the full project tree.
 location ~ /\. { deny all; }

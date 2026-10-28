@@ -1,0 +1,12 @@
+{
+  "name": "annoor-website-checks",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": ">=24.19.0" },
+  "scripts": {
+    "test": "node scripts/check-release.mjs",
+    "check": "npm --prefix live-class test && npm --prefix payment-module test && npm --prefix payment-module run check:edge && npm test",
+    "build": "npm --prefix live-class run build && npm --prefix payment-module run build"
+  },
+  "devDependencies": { "jsdom": "30.1.3" }
+}

@@ -1,8 +1,18 @@
 import {allocateLoginId} from './identities.js';
 import {migrateReceipts} from './receipts.js';
 import {migrateLearning} from './learning.js';
-import {DatabaseSync} from 'node:sqlite';import {mkdirSync} from 'node:fs';import {dirname} from 'node:path';
-export function openDb(path){if(path!==':memory:')mkdirSync(dirname(path),{recursive:true});const db=new DatabaseSync(path);db.exec(`PRAGMA foreign_keys=ON;PRAGMA journal_mode=WAL;PRAGMA busy_timeout=5000;
+import {DatabaseSync} from 'node:sqlite';import {mkdirSync,openSync,closeSync} from 'node:fs';import {dirname} from 'node:path';
+export const SUPPORTED_SCHEMA_VERSION=3;
+export function openDb(path){if(path!==':memory:'){mkdirSync(dirname(path),{recursive:true,mode:0o700});try{closeSync(openSync(path,'wx',0o600));}catch(error){if(error.code!=='EEXIST')throw error;}}
+const db=new DatabaseSync(path);
+// Refuse an unsupported downgrade before applying any schema changes.
+try{const tables=db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all().map(row=>row.name);
+ if(tables.length&&!tables.includes('users')&&!tables.includes('schema_versions'))throw Error('Database is not an An-Noor classroom database');
+ if(tables.includes('schema_versions')){
+ const latest=db.prepare('SELECT MAX(version) version FROM schema_versions').get().version;
+ if(latest>SUPPORTED_SCHEMA_VERSION)throw Error('Database schema is newer than this code. Use a compatible release; do not restore an old database.');
+}}catch(error){db.close();throw error;}
+db.exec(`PRAGMA foreign_keys=ON;PRAGMA journal_mode=WAL;PRAGMA busy_timeout=5000;
 CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('admin','teacher','student')),active INTEGER NOT NULL DEFAULT 1);
 CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id),expires INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS classes(id TEXT PRIMARY KEY,title TEXT NOT NULL,teacher_id TEXT NOT NULL REFERENCES users(id),room TEXT NOT NULL UNIQUE,scheduled TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'scheduled' CHECK(status IN ('scheduled','live','ended')),locked INTEGER NOT NULL DEFAULT 0,created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);

@@ -34,3 +34,14 @@ The user explicitly requested on 2026-10-23 that every completed website update 
 ## Keep the repository compact
 
 Update `docs/OPERATIONS.md` for current behavior and `docs/HISTORY.md` for delivery history. Do not add separate root update reports for each upgrade. Keep functional source, tests and deployment files when they serve distinct purposes.
+
+
+## Safe future updates
+
+- Keep production student accounts, permanent IDs, passwords, sessions, lessons, payments and receipts outside the code checkout/public/release folders. Code ZIPs and Git are not data backups. Never recreate accounts or change DB_PATH merely to publish new code.
+- Before publishing, install from the three committed lockfiles, run `npm run build` when portal inputs change, and run `npm run check`. The package workflow runs these checks before it writes the release ZIP. Do not skip a failing check to finish an update.
+- Production Node starts require an existing absolute DB_PATH and automatically verify a fresh private SQLite backup before startup migrations. Do not bypass this check, initialize a replacement empty DB or restore an old DB to undo a UI/code change. A bootstrap is an explicit first-install action only. Keep off-server backups and a tested retention/restore policy.
+- Use new additive Supabase migrations and preserve already-applied migration files/history. Test migrations against existing data, IDs, constraints, audit and permissions. For destructive/incompatible changes, first prepare a specific data-preserving plan and verified backup. Do not run a production reset, seed or silent schema downgrade.
+- Keep old/new API contracts compatible across releases. Prefer the host's atomic deployment or the tested `scripts/release-public.mjs` workflow. Preserve fingerprinted bundles for open tabs, revalidate private HTML, and roll back compatible code without restoring stale payment/student data. Do not automatically prune releases/backups.
+- Updating GitHub does not deploy an unconfigured host. Preserve the established production environment; do not create hosting/media/payment services or new credentials to complete an ordinary update. After hosting is connected, publish only a tested release and report the actual deployment/health result.
+- Give the verified full ZIP from `/workspace/scratch/` with its sandbox link plus the GitHub update. Do not use a temporary `/mnt/data/` download path. Verify ZIP contents and link target again before delivery.
